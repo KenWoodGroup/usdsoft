@@ -1,6 +1,238 @@
 {
-    "login": "Login",
-    "email": "Email",
-    "password": "Password",
-    "logout": "Logout"
+    "login": {
+        "title": "Login",
+        "username": "Username",
+        "password": "Password",
+        "button": "Sign in",
+        "loading": "Signing in...",
+        "error": "Invalid username or password",
+        "loginSuccess": "Successfully logged in",
+        "loginError": "Login error",
+        "noAccount": "No account?",
+        "register": "Register"
+    },
+    "notfound": {
+        "title": "404",
+        "heading": "Oops! Page not found.",
+        "description": "Sorry, we couldn’t find the page you’re looking for. You can return to the login page or go back.",
+        "buttons": {
+            "login": "Login",
+            "back": "Back"
+        }
+    },
+    "sidebar": {
+        "item1": "Create order",
+        "item2": "Orders"
+    },
+    "error": {
+        "title": "Something went wrong",
+        "defaultMessage": "An error occurred while loading data. Please try again later.",
+        "unknown": "Unknown error",
+        "retry": "Retry"
+    },
+    "orderCreate": {
+        "title": "Create order",
+        "subtitle": "Select products from the catalog or add them manually",
+        "search": {
+            "title": "Product search",
+            "subtitle": "Find the products you need in the catalog",
+            "placeholder": "Search by product name...",
+            "addManual": "Add manually",
+            "addManualTooltip": "Product not available in the catalog",
+            "found": "Products found",
+            "showing": "Showing {count} of {total} products",
+            "noResults": {
+                "withSearch": "No products found",
+                "withoutSearch": "Start searching for products",
+                "hintSearch": "Try changing your search query",
+                "hintNoSearch": "Enter a product name in the search field above"
+            }
+        },
+        "manualAdd": {
+            "title": "Add product manually",
+            "nameLabel": "Product name *",
+            "namePlaceholder": "For example: Special masonry mortar",
+            "quantityLabel": "Quantity",
+            "unitLabel": "Unit",
+            "notesLabel": "Notes (optional)",
+            "notesPlaceholder": "For example: color, brand, size",
+            "addButton": "Add product",
+            "cancelButton": "Cancel",
+            "unitOptions": {
+                "none": "Not specified",
+                "piece": "pcs",
+                "kg": "kg",
+                "litre": "l",
+                "meter": "m",
+                "m2": "m²",
+                "m3": "m³",
+                "pack": "pack",
+                "roll": "roll",
+                "bag": "bag"
+            }
+        },
+        "productList": {
+            "title": "Search results",
+            "inStock": "In stock",
+            "selected": "Product added",
+            "manualAdded": "Manually added",
+            "category": "Category"
+        },
+        "pagination": {
+            "page": "Page",
+            "of": "of",
+            "goTo": "Go to",
+            "firstPage": "First page",
+            "lastPage": "Last page",
+            "previousPage": "Previous page",
+            "nextPage": "Next page"
+        },
+        "cart": {
+            "title": "Cart",
+            "empty": "Your cart is empty. Add products from the catalog.",
+            "itemCount": "{count} items",
+            "clearButton": "Clear",
+            "createOrderButton": "Create order",
+            "creatingOrder": "Submitting...",
+            "totalItems": "Total items",
+            "totalSum": "Total amount",
+            "manualLabel": "Manual",
+            "remove": "Remove"
+        },
+        "notifications": {
+            "productAdded": "Product added",
+            "manualProductAdded": "Product added manually",
+            "noProducts": "Select at least one product",
+            "missingQuantity": {
+                "title": "Attention",
+                "message": "The following products have no quantity specified"
+            },
+            "creatingOrder": {
+                "title": "Creating order...",
+                "message": "Please wait"
+            },
+            "orderCreated": {
+                "title": "Order created!",
+                "message": "The order has been successfully created and sent for processing.",
+                "details": "Order details",
+                "itemsCount": "Items",
+                "totalSum": "Total"
+            },
+            "error": {
+                "title": "Error",
+                "default": "Failed to create order. Please try again."
+            }
+        },
+        "productCard": {
+            "add": "Add product",
+            "remove": "Remove product",
+            "unit": "Unit",
+            "price": "Price",
+            "stock": "In stock"
+        },
+        "validation": {
+            "nameRequired": "Enter product name",
+            "quantityRequired": "Enter quantity",
+            "quantityInvalid": "Quantity must be a non-negative number"
+        },
+        "status": {
+            "loading": "Loading...",
+            "error": "Loading error"
+        }
+    },
+    "profile": {
+        "title": "Company profile",
+        "subtitle": "View company and administrator information",
+        "companyCard": {
+            "title": "Company",
+            "subtitle": "Basic information and contacts",
+            "name": "Company name",
+            "address": "Address",
+            "phone": "Contact phone",
+            "balance": "Current balance",
+            "registrationDate": "Registration date",
+            "notSpecified": "Not specified"
+        },
+        "userCard": {
+            "title": "Administrator",
+            "subtitle": "Administrator user information",
+            "fullName": "Full name",
+            "username": "Username",
+            "email": "Email",
+            "notFound": {
+                "title": "User not found",
+                "description": "No user data available for this company"
+            },
+            "copyTooltip": "Copy to clipboard"
+        },
+        "status": {
+            "loading": "Loading...",
+            "error": "Loading error"
+        }
+    },
+    "order": {
+        "title": "Order details",
+        "location": "Location",
+        "contractNumber": "Contract number",
+        "createdAt": "Created at",
+        "items": "Order items",
+        "error": "Failed to load order",
+        "status": {
+            "new": "New",
+            "confirmed": "Confirmed",
+            "cancelled": "Cancelled"
+        }
+    },
+    "header": {
+        "profile": "Profile",
+        "logout": "Logout"
+    },
+    "orders": {
+        "title": "Orders",
+        "subtitle": "Total orders: {count}",
+        "noOrders": {
+            "title": "No orders",
+            "description": "Orders will appear here"
+        },
+        "table": {
+            "number": "Number",
+            "status": "Status",
+            "created": "Created",
+            "updated": "Updated",
+            "actions": "Actions",
+            "contractNumber": "Contract number",
+            "notes": "Notes",
+            "items": "Items",
+            "view": "View"
+        },
+        "status": {
+            "new": "New",
+            "processing": "Processing",
+            "confirmed": "Confirmed",
+            "shipped": "Shipped",
+            "delivered": "Delivered",
+            "cancelled": "Cancelled",
+            "completed": "Completed"
+        },
+        "pagination": {
+            "showing": "Showing {shown} of {total}",
+            "first": "First",
+            "last": "Last",
+            "previous": "Previous",
+            "next": "Next",
+            "page": "Page {page}",
+            "goTo": "Go to page"
+        },
+        "actions": {
+            "view": "View",
+            "edit": "Edit",
+            "delete": "Delete",
+            "confirm": "Confirm",
+            "cancel": "Cancel",
+            "duplicate": "Duplicate",
+            "export": "Export"
+        },
+        "loading": "Loading orders...",
+        "error": "Failed to load orders"
+    }
 }

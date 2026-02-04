@@ -12,6 +12,14 @@
   padding: 0 15px;
 }
 
+body {
+  @apply bg-background-light dark:bg-background-dark;
+}
+
+.login_left_bg{
+  background-image: url('./Images/1508389535_05_img_7506374e7ca7c3beb6de15be5f1e6f15.jpg');
+}
+
 
 
 .Modal3Content {

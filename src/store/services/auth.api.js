@@ -3,7 +3,7 @@ import { axiosBaseQuery } from '../baseQuary/axiosBaseQuery';
 
 export const authApi = createApi({
     reducerPath: 'authApi',
-    baseQuery: axiosBaseQuery(),
+    baseQuery: axiosBaseQuery({ usePublicApi: true }), // 🔹 login и refresh публичные
     tagTypes: ['Auth'],
     endpoints: (builder) => ({
         login: builder.mutation({

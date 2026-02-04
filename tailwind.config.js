@@ -12,24 +12,18 @@ module.exports = withMT({
       colors: {
         background: {
           light: "#FAFAFA", // фон светлого режима
-          dark: "#212121",  // фон тёмного режима
+          dark: "#020617",  // фон тёмного режима
         },
         card: {
           light: "#FFFFFF", // карточки при светлой теме
-          dark: "#181818",  // карточки при тёмной теме
+          dark: "#080E21",  // карточки при тёмной теме
         },
         text: {
           light: "#212121", // тёмный текст при светлой теме
           dark: "#FAFAFA",  // светлый текст при тёмной теме
         },
+        mainColor: "#1E88E5"
       },
-    },
-    screens: {
-      desktop: "1280px",
-      laptop: { max: "1279px" },
-      tablet: { max: "1023px" },
-      mid: { max: "867px" },
-      phone: { max: "639px" },
     },
   },
   plugins: [

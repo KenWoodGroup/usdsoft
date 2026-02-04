@@ -2,13 +2,14 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
-import { ThemeProvider } from '@material-tailwind/react'
 import './app/i18n';
+
+// Сразу применяем тему из localStorage
+const savedTheme = localStorage.getItem("theme");
+if (savedTheme === "dark") document.documentElement.classList.add("dark");
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <ThemeProvider>
-      <App />
-    </ThemeProvider>
-  </StrictMode>,
-)
+    <App />
+  </StrictMode>
+);

@@ -1,6 +1,238 @@
 {
-  "login": "Kirish",
-  "email": "Email",
-  "password": "Parol",
-  "logout": "Chiqish"
+  "login": {
+    "title": "Tizimga kirish",
+    "username": "Foydalanuvchi nomi",
+    "password": "Parol",
+    "button": "Kirish",
+    "loading": "Kirilmoqda...",
+    "error": "Login yoki parol noto‘g‘ri",
+    "loginSuccess": "Muvaffaqiyatli kirdingiz",
+    "loginError": "Kirishda xatolik",
+    "noAccount": "Hisobingiz yo‘qmi?",
+    "register": "Ro‘yxatdan o‘tish"
+  },
+  "notfound": {
+    "title": "404",
+    "heading": "Ups! Sahifa topilmadi.",
+    "description": "Kechirasiz, siz qidirayotgan sahifa topilmadi. Siz login sahifasiga yoki bosh sahifaga qaytishingiz mumkin.",
+    "buttons": {
+      "login": "Kirish",
+      "back": "Orqaga"
+    }
+  },
+  "sidebar": {
+    "item1": "Buyurtma berish",
+    "item2": "Buyurtmalar"
+  },
+  "error": {
+    "title": "Nimadir xato ketdi",
+    "defaultMessage": "Ma’lumotlarni yuklashda xatolik yuz berdi. Iltimos, keyinroq urinib ko‘ring.",
+    "unknown": "Noma’lum xatolik",
+    "retry": "Qayta urinish"
+  },
+  "orderCreate": {
+    "title": "Buyurtma yaratish",
+    "subtitle": "Katalogdan mahsulotlarni tanlang yoki qo‘lda qo‘shing",
+    "search": {
+      "title": "Mahsulot qidirish",
+      "subtitle": "Katalogdan kerakli mahsulotlarni toping",
+      "placeholder": "Mahsulot nomi bo‘yicha qidirish...",
+      "addManual": "Qo‘lda qo‘shish",
+      "addManualTooltip": "Katalogda mavjud bo‘lmagan mahsulot",
+      "found": "Topilgan mahsulotlar",
+      "showing": "{total} tadan {count} tasi ko‘rsatilmoqda",
+      "noResults": {
+        "withSearch": "Mahsulotlar topilmadi",
+        "withoutSearch": "Mahsulot qidirishni boshlang",
+        "hintSearch": "Qidiruv so‘zini o‘zgartirib ko‘ring",
+        "hintNoSearch": "Yuqoridagi qidiruv maydoniga mahsulot nomini kiriting"
+      }
+    },
+    "manualAdd": {
+      "title": "Mahsulotni qo‘lda qo‘shish",
+      "nameLabel": "Mahsulot nomi *",
+      "namePlaceholder": "Masalan: Maxsus qorishma eritmasi",
+      "quantityLabel": "Miqdor",
+      "unitLabel": "O‘lchov birligi",
+      "notesLabel": "Izohlar (ixtiyoriy)",
+      "notesPlaceholder": "Masalan: rang, marka, o‘lcham",
+      "addButton": "Mahsulotni qo‘shish",
+      "cancelButton": "Bekor qilish",
+      "unitOptions": {
+        "none": "Ko‘rsatilmagan",
+        "piece": "dona",
+        "kg": "kg",
+        "litre": "l",
+        "meter": "m",
+        "m2": "m²",
+        "m3": "m³",
+        "pack": "qadoq",
+        "roll": "rulon",
+        "bag": "qop"
+      }
+    },
+    "productList": {
+      "title": "Qidiruv natijalari",
+      "inStock": "Mavjud",
+      "selected": "Mahsulot qo‘shildi",
+      "manualAdded": "Mahsulot qo‘lda qo‘shildi",
+      "category": "Kategoriya"
+    },
+    "pagination": {
+      "page": "Sahifa",
+      "of": "dan",
+      "goTo": "O‘tish",
+      "firstPage": "Birinchi sahifa",
+      "lastPage": "Oxirgi sahifa",
+      "previousPage": "Oldingi sahifa",
+      "nextPage": "Keyingi sahifa"
+    },
+    "cart": {
+      "title": "Savat",
+      "empty": "Savat bo‘sh. Katalogdan mahsulot qo‘shing.",
+      "itemCount": "{count} ta mahsulot",
+      "clearButton": "Tozalash",
+      "createOrderButton": "Buyurtma yaratish",
+      "creatingOrder": "Yuborilmoqda...",
+      "totalItems": "Jami mahsulotlar",
+      "totalSum": "Umumiy summa",
+      "manualLabel": "Qo‘lda",
+      "remove": "O‘chirish"
+    },
+    "notifications": {
+      "productAdded": "Mahsulot qo‘shildi",
+      "manualProductAdded": "Mahsulot qo‘lda qo‘shildi",
+      "noProducts": "Kamida bitta mahsulot tanlang",
+      "missingQuantity": {
+        "title": "Diqqat",
+        "message": "Quyidagi mahsulotlarda miqdor ko‘rsatilmagan"
+      },
+      "creatingOrder": {
+        "title": "Buyurtma yaratilmoqda...",
+        "message": "Iltimos, kuting"
+      },
+      "orderCreated": {
+        "title": "Buyurtma yaratildi!",
+        "message": "Buyurtma muvaffaqiyatli yaratildi va qayta ishlashga yuborildi.",
+        "details": "Buyurtma tafsilotlari",
+        "itemsCount": "Mahsulotlar",
+        "totalSum": "Summa"
+      },
+      "error": {
+        "title": "Xatolik",
+        "default": "Buyurtma yaratib bo‘lmadi. Qayta urinib ko‘ring."
+      }
+    },
+    "productCard": {
+      "add": "Mahsulot qo‘shish",
+      "remove": "Mahsulotni o‘chirish",
+      "unit": "O‘lchov birligi",
+      "price": "Narx",
+      "stock": "Mavjud"
+    },
+    "validation": {
+      "nameRequired": "Mahsulot nomini kiriting",
+      "quantityRequired": "Miqdor kiriting",
+      "quantityInvalid": "Miqdor manfiy bo‘lmagan son bo‘lishi kerak"
+    },
+    "status": {
+      "loading": "Yuklanmoqda...",
+      "error": "Yuklashda xatolik"
+    }
+  },
+  "profile": {
+    "title": "Kompaniya profili",
+    "subtitle": "Kompaniya va boshqaruvchi foydalanuvchi ma’lumotlari",
+    "companyCard": {
+      "title": "Kompaniya",
+      "subtitle": "Asosiy ma’lumotlar va aloqa",
+      "name": "Kompaniya nomi",
+      "address": "Manzil",
+      "phone": "Aloqa telefoni",
+      "balance": "Joriy balans",
+      "registrationDate": "Ro‘yxatdan o‘tgan sana",
+      "notSpecified": "Ko‘rsatilmagan"
+    },
+    "userCard": {
+      "title": "Administrator",
+      "subtitle": "Boshqaruvchi foydalanuvchi ma’lumotlari",
+      "fullName": "To‘liq ism",
+      "username": "Foydalanuvchi nomi",
+      "email": "Elektron pochta",
+      "notFound": {
+        "title": "Foydalanuvchi topilmadi",
+        "description": "Ushbu kompaniya uchun foydalanuvchi ma’lumotlari yo‘q"
+      },
+      "copyTooltip": "Buferga nusxalash"
+    },
+    "status": {
+      "loading": "Yuklanmoqda...",
+      "error": "Yuklashda xatolik"
+    }
+  },
+  "order": {
+    "title": "Buyurtma tafsilotlari",
+    "location": "Lokatsiya",
+    "contractNumber": "Shartnoma raqami",
+    "createdAt": "Yaratilgan sana",
+    "items": "Buyurtma pozitsiyalari",
+    "error": "Buyurtmani yuklab bo‘lmadi",
+    "status": {
+      "new": "Yangi",
+      "confirmed": "Tasdiqlangan",
+      "cancelled": "Bekor qilingan"
+    }
+  },
+  "header": {
+    "profile": "Profil",
+    "logout": "Chiqish"
+  },
+  "orders": {
+    "title": "Buyurtmalar",
+    "subtitle": "Jami buyurtmalar: {count}",
+    "noOrders": {
+      "title": "Buyurtmalar yo‘q",
+      "description": "Buyurtmalar shu yerda paydo bo‘ladi"
+    },
+    "table": {
+      "number": "Raqam",
+      "status": "Holat",
+      "created": "Yaratilgan",
+      "updated": "Yangilangan",
+      "actions": "Amallar",
+      "contractNumber": "Shartnoma raqami",
+      "notes": "Izohlar",
+      "items": "Mahsulotlar",
+      "view": "Ko‘rish"
+    },
+    "status": {
+      "new": "Yangi",
+      "processing": "Jarayonda",
+      "confirmed": "Tasdiqlangan",
+      "shipped": "Yuborilgan",
+      "delivered": "Yetkazilgan",
+      "cancelled": "Bekor qilingan",
+      "completed": "Yakunlangan"
+    },
+    "pagination": {
+      "showing": "{total} tadan {shown} tasi ko‘rsatilmoqda",
+      "first": "Birinchi",
+      "last": "Oxirgi",
+      "previous": "Oldingi",
+      "next": "Keyingi",
+      "page": "Sahifa {page}",
+      "goTo": "Sahifaga o‘tish"
+    },
+    "actions": {
+      "view": "Ko‘rish",
+      "edit": "Tahrirlash",
+      "delete": "O‘chirish",
+      "confirm": "Tasdiqlash",
+      "cancel": "Bekor qilish",
+      "duplicate": "Nusxalash",
+      "export": "Eksport"
+    },
+    "loading": "Buyurtmalar yuklanmoqda...",
+    "error": "Buyurtmalarni yuklashda xatolik"
+  }
 }
