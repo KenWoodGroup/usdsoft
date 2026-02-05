@@ -48,6 +48,12 @@
         "hintNoSearch": "Введите название товара в поле поиска выше"
       }
     },
+    "factories": {
+      "all": "Все фабрики",
+      "filter": "Фильтр по фабрикам",
+      "manual": "Ручной ввод",
+      "selected": "Выбрана фабрика"
+    },
     "manualAdd": {
       "title": "Добавление товара вручную",
       "nameLabel": "Название товара *",
@@ -72,6 +78,8 @@
       }
     },
     "productList": {
+      "titleAll": "Все товары",
+      "titleFactory": "Товары фабрики: {factory}",
       "title": "Результаты поиска",
       "inStock": "В наличии",
       "selected": "Товар добавлен",
@@ -97,7 +105,13 @@
       "totalItems": "Всего товаров",
       "totalSum": "Общая сумма",
       "manualLabel": "Вручную",
-      "remove": "Удалить"
+      "remove": "Удалить",
+      "deliveryDate": "На какую дату нужен заказ?",
+      "needDelivery": "Нужна ли доставка логистом?",
+      "note": "Примечание",
+      "notePlaceholder": "Введите примечание к заказу (необязательно)",
+      "noteHint": "Дополнительная информация для менеджера или курьера",
+      "deliveryDateHint": "Дата, на которую запланирована доставка"
     },
     "notifications": {
       "productAdded": "Товар добавлен",
@@ -106,6 +120,10 @@
       "missingQuantity": {
         "title": "Внимание",
         "message": "У следующих товаров не указано количество"
+      },
+      "missingFields": {
+        "title": "Не заполнены обязательные поля",
+        "message": "Пожалуйста, заполните дату доставки и выберите вариант логистики"
       },
       "creatingOrder": {
         "title": "Создание заказа...",
@@ -198,6 +216,7 @@
       "number": "Номер",
       "status": "Статус",
       "created": "Создан",
+      "date": "На это время",
       "updated": "Обновлен",
       "actions": "Действия",
       "contractNumber": "Номер договора",
@@ -234,5 +253,88 @@
     },
     "loading": "Загрузка заказов...",
     "error": "Ошибка загрузки заказов"
+  },
+  "passwordChange": {
+    "button": "Сменить пароль",
+    "title": "Смена пароля",
+    "fields": {
+      "oldPassword": "Старый пароль",
+      "newPassword": "Новый пароль",
+      "confirmPassword": "Подтвердите пароль"
+    },
+    "placeholders": {
+      "enterCurrentPassword": "Введите текущий пароль",
+      "enterNewPassword": "Введите новый пароль",
+      "repeatNewPassword": "Повторите новый пароль"
+    },
+    "validation": {
+      "oldPasswordRequired": "Введите старый пароль",
+      "newPasswordRequired": "Введите новый пароль",
+      "minimumCharacters": "Минимум 6 символов",
+      "sameAsOld": "Новый пароль не должен совпадать со старым",
+      "confirmPasswordRequired": "Подтвердите пароль",
+      "passwordsDontMatch": "Пароли не совпадают"
+    },
+    "passwordStrength": {
+      "enterPassword": "Введите пароль",
+      "weak": "Слабый пароль",
+      "medium": "Средний пароль",
+      "strong": "Надёжный пароль"
+    },
+    "requirements": {
+      "title": "Требования к паролю",
+      "minimumLength": "Минимум 6 символов (рекомендуется 8+)",
+      "uppercaseLetters": "Содержит заглавные буквы",
+      "numbers": "Содержит цифры",
+      "specialCharacters": "Содержит специальные символы"
+    },
+    "confirmation": {
+      "title": "Подтвердите смену пароля",
+      "message": "Вы уверены, что хотите изменить пароль?",
+      "confirmButton": "Да, изменить",
+      "cancelButton": "Отмена"
+    },
+    "success": {
+      "title": "Пароль успешно изменён",
+      "message": "Теперь вы можете использовать новый пароль для входа"
+    },
+    "error": {
+      "title": "Ошибка",
+      "default": "Ошибка при смене пароля",
+      "incorrectOldPassword": "Неверный старый пароль",
+      "weakPassword": "Пароль слишком слабый. Используйте более сложный пароль",
+      "confirmButton": "Понятно"
+    },
+    "accessibility": {
+      "showPassword": "Показать пароль",
+      "hidePassword": "Скрыть пароль"
+    }
+  },
+  "common": {
+    "cancel": "Отмена",
+    "changing": "Изменение..."
+  },
+  "userEdit": {
+    "title": "Редактировать профиль",
+    "button": {
+      "edit": "Редактировать",
+      "save": "Сохранить",
+      "saving": "Сохранение...",
+      "cancel": "Отмена"
+    },
+    "form": {
+      "fullName": "Полное имя",
+      "username": "Имя пользователя",
+      "email": "Email"
+    },
+    "validation": {
+      "fullNameRequired": "Полное имя обязательно",
+      "usernameRequired": "Имя пользователя обязательно",
+      "invalidEmail": "Введите корректный email"
+    },
+    "notifications": {
+      "success": "Профиль успешно обновлен",
+      "error": "Ошибка при обновлении профиля"
+    }
   }
 }

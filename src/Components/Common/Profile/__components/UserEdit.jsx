@@ -1,7 +1,15 @@
 import { useState, useEffect } from "react";
-import { Button, Dialog, DialogHeader, DialogBody, DialogFooter, Input, Typography } from "@material-tailwind/react";
+import {
+    Button,
+    Dialog,
+    DialogHeader,
+    DialogBody,
+    DialogFooter,
+    Input,
+    Typography,
+} from "@material-tailwind/react";
 import { User, Mail, Edit } from "lucide-react";
-import { useEditUserMutation } from '@/store/services/user.api';
+import { useEditUserMutation } from "@/store/services/user.api";
 import { Alert } from "../../../Other/UI/Alert/Alert";
 import { useTranslation } from "react-i18next";
 
@@ -10,11 +18,10 @@ export default function UserEditModal({ userData, refresh }) {
     const [editUser, { isLoading: isEditing }] = useEditUserMutation();
     const { t } = useTranslation();
 
-
     const [editForm, setEditForm] = useState({
         full_name: "",
         username: "",
-        email: ""
+        email: "",
     });
 
     const [errors, setErrors] = useState({});
@@ -26,7 +33,7 @@ export default function UserEditModal({ userData, refresh }) {
             setEditForm({
                 full_name: userData.full_name || "",
                 username: userData.username || "",
-                email: userData.email || ""
+                email: userData.email || "",
             });
             setErrors({});
             setSuccessMessage("");
@@ -40,21 +47,21 @@ export default function UserEditModal({ userData, refresh }) {
         const newErrors = {};
 
         if (!editForm.full_name.trim()) {
-            newErrors.full_name = "Полное имя обязательно";
+            newErrors.full_name = t("userEdit.validation.fullNameRequired");
         }
 
         if (!editForm.username.trim()) {
-            newErrors.username = "Имя пользователя обязательно";
+            newErrors.username = t("userEdit.validation.usernameRequired");
         }
 
         if (editForm.email && !/\S+@\S+\.\S+/.test(editForm.email)) {
-            newErrors.email = "Введите корректный email";
+            newErrors.email = t("userEdit.validation.invalidEmail");
         }
 
         return newErrors;
     };
 
-    // Обработчик сохранения
+    // Сохранение
     const handleSave = async () => {
         const validationErrors = validateForm();
 
@@ -73,40 +80,32 @@ export default function UserEditModal({ userData, refresh }) {
                 },
             }).unwrap();
 
-            Alert(t("alert.success"), "success");
+            Alert(t("userEdit.notifications.success"), "success");
             refresh();
             setOpen(false);
-
         } catch (error) {
-            Alert(t("alert.error"), "error");
+            Alert(t("userEdit.notifications.error"), "error");
         }
     };
 
-
-
-    // Обработчик изменения поля
     const handleChange = (field, value) => {
-        setEditForm(prev => ({
-            ...prev,
-            [field]: value
-        }));
+        setEditForm((prev) => ({ ...prev, [field]: value }));
 
-        // Очищаем ошибку при редактировании
         if (errors[field]) {
-            setErrors(prev => ({ ...prev, [field]: "" }));
+            setErrors((prev) => ({ ...prev, [field]: "" }));
         }
     };
 
     return (
         <>
-            {/* Кнопка для открытия модалки */}
+            {/* Кнопка открыть модал */}
             <Button
-                className="bg-mainColor flex items-center gap-2"
+                className="bg-mainColor flex items-center gap-2 dark:bg-blue-700 dark:hover:bg-blue-600"
                 onClick={handleOpen}
                 size="sm"
             >
                 <Edit className="h-4 w-4" />
-                Редактировать
+                {t("userEdit.button.edit")}
             </Button>
 
             {/* Модальное окно */}
@@ -114,49 +113,34 @@ export default function UserEditModal({ userData, refresh }) {
                 open={open}
                 handler={handleOpen}
                 size="md"
+                className="bg-background-light dark:bg-background-dark rounded-2xl dark:border-white/20"
             >
-                <DialogHeader className="border-b border-gray-200 pb-4">
+                {/* Header */}
+                <DialogHeader className="flex items-center justify-between bg-background-light dark:bg-background-dark border-b border-gray-200 dark:border-gray-700 rounded-t-2xl px-4 py-3">
                     <div className="flex items-center gap-2">
-                        <User className="h-5 w-5 text-mainColor" />
-                        <Typography variant="h5" className="text-gray-800 dark:text-white">
-                            Редактировать профиль
+                        <User className="h-5 w-5 text-mainColor dark:text-blue-400" />
+                        <Typography className="text-gray-800 dark:text-white font-semibold">
+                            {t("userEdit.title")}
                         </Typography>
                     </div>
                 </DialogHeader>
 
-                <DialogBody className="pt-6">
-                    {successMessage && (
-                        <Alert
-                            color="green"
-                            className="mb-4"
-                            onClose={() => setSuccessMessage("")}
-                        >
-                            {successMessage}
-                        </Alert>
-                    )}
+                {/* Body */}
+                <DialogBody className="px-4 py-6 space-y-4 bg-background-light dark:bg-background-dark max-h-[60vh] overflow-y-auto">
 
-                    {errors.submit && (
-                        <Alert
-                            color="red"
-                            className="mb-4"
-                            onClose={() => setErrors(prev => ({ ...prev, submit: "" }))}
-                        >
-                            {errors.submit}
-                        </Alert>
-                    )}
 
+                    {/* Поля формы */}
                     <div className="space-y-4">
                         <div>
                             <Input
-                                label="Полное имя"
+                                label={t("userEdit.form.fullName")}
                                 value={editForm.full_name}
                                 onChange={(e) => handleChange("full_name", e.target.value)}
                                 error={!!errors.full_name}
+                                color="blue-gray"
                                 icon={<User className="h-4 w-4" />}
-                                className="dark:text-white dark:bg-gray-800"
-                                labelProps={{
-                                    className: "dark:text-gray-300"
-                                }}
+                                className="dark:bg-card-dark dark:text-white"
+                                labelProps={{ className: "dark:text-gray-300" }}
                             />
                             {errors.full_name && (
                                 <Typography variant="small" color="red" className="mt-1">
@@ -167,14 +151,13 @@ export default function UserEditModal({ userData, refresh }) {
 
                         <div>
                             <Input
-                                label="Имя пользователя"
+                                label={t("userEdit.form.username")}
                                 value={editForm.username}
                                 onChange={(e) => handleChange("username", e.target.value)}
                                 error={!!errors.username}
-                                className="dark:text-white dark:bg-gray-800"
-                                labelProps={{
-                                    className: "dark:text-gray-300"
-                                }}
+                                className="dark:bg-card-dark dark:text-white"
+                                color="blue-gray"
+                                labelProps={{ className: "dark:text-gray-300" }}
                             />
                             {errors.username && (
                                 <Typography variant="small" color="red" className="mt-1">
@@ -185,16 +168,15 @@ export default function UserEditModal({ userData, refresh }) {
 
                         <div>
                             <Input
-                                label="Email"
+                                label={t("userEdit.form.email")}
                                 type="email"
                                 value={editForm.email}
                                 onChange={(e) => handleChange("email", e.target.value)}
                                 error={!!errors.email}
                                 icon={<Mail className="h-4 w-4" />}
-                                className="dark:text-white dark:bg-gray-800"
-                                labelProps={{
-                                    className: "dark:text-gray-300"
-                                }}
+                                color="blue-gray"
+                                className="dark:bg-card-dark dark:text-white"
+                                labelProps={{ className: "dark:text-gray-300" }}
                             />
                             {errors.email && (
                                 <Typography variant="small" color="red" className="mt-1">
@@ -205,21 +187,24 @@ export default function UserEditModal({ userData, refresh }) {
                     </div>
                 </DialogBody>
 
-                <DialogFooter className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                {/* Footer */}
+                <DialogFooter className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-2 bg-background-light dark:bg-background-dark">
                     <Button
                         variant="text"
                         color="red"
                         onClick={handleOpen}
-                        className="mr-2 dark:text-gray-300 dark:hover:bg-gray-700"
+                        className="dark:text-gray-300 dark:hover:bg-gray-700"
                     >
-                        Отмена
+                        {t("userEdit.button.cancel")}
                     </Button>
                     <Button
-                        className="bg-mainColor"
+                        className="bg-mainColor dark:bg-blue-700 dark:hover:bg-blue-600"
                         onClick={handleSave}
                         disabled={isEditing}
                     >
-                        {isEditing ? "Сохранение..." : "Сохранить"}
+                        {isEditing
+                            ? t("userEdit.button.saving")
+                            : t("userEdit.button.save")}
                     </Button>
                 </DialogFooter>
             </Dialog>

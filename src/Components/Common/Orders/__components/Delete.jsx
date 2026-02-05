@@ -16,9 +16,6 @@ export default function Delete({ orderId, refresh }) {
     const [open, setOpen] = useState(false);
     const [deleteOrder, { isLoading, error }] = useDeleteOrdersMutation();
 
-
-    console.log(orderId)
-
     const handleOpen = () => setOpen(!open);
 
     const handleDelete = async () => {
@@ -45,7 +42,6 @@ export default function Delete({ orderId, refresh }) {
             >
                 <Trash className="w-4 h-4" />
             </Button>
-
             {/* Модальное окно подтверждения */}
             <Dialog
                 open={open}
@@ -70,7 +66,6 @@ export default function Delete({ orderId, refresh }) {
                         </Typography>
                     </div>
                 </DialogBody>
-
                 <DialogFooter className="gap-2">
                     <Button
                         variant="outlined"

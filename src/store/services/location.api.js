@@ -15,7 +15,16 @@ export const locationApi = createApi({
                 { type: 'Location', id },
             ],
         }),
+        GetFactory: builder.query({
+            query: () => ({
+                url: `/locations`,
+                method: 'GET',
+            }),
+            providesTags: (result, error, id) => [
+                { type: 'Location', id },
+            ],
+        }),
     }),
 });
 
-export const { useGetLocationByIdQuery } = locationApi;
+export const { useGetLocationByIdQuery,useGetFactoryQuery } = locationApi;

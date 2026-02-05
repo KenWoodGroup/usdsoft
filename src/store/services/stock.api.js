@@ -8,12 +8,22 @@ export const stockApi = createApi({
     tagTypes: ['Stock'],
     endpoints: (builder) => ({
         stockGetSearch: builder.query({
-            query: ({ page = 1, search = '' }) => ({
-                url: search
-                    ? `/stock/by-name/product/${search}?page=${page}`
-                    : `/stock/by-name/product?page=${page}`,
-                method: 'GET',
-            }),
+            query: ({ page = 1, search = '', location_id }) => {
+                const params = new URLSearchParams();
+
+                params.set('page', page);
+
+                if (location_id && location_id !== 'all') {
+                    params.set('location_id', location_id);
+                }
+
+                return {
+                    url: search
+                        ? `/stock/by-name/product/${search}?${params.toString()}`
+                        : `/stock/by-name/product?${params.toString()}`,
+                    method: 'GET',
+                };
+            },
             providesTags: ['Stock'],
         }),
     }),

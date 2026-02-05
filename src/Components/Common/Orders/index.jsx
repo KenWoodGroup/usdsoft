@@ -186,6 +186,14 @@ export default function Orders() {
                                                 variant="small"
                                                 className="font-semibold text-text-light dark:text-text-dark uppercase text-xs tracking-wider"
                                             >
+                                                {t('orders.table.date')}
+                                            </Typography>
+                                        </th>
+                                        <th className="p-4 text-left">
+                                            <Typography
+                                                variant="small"
+                                                className="font-semibold text-text-light dark:text-text-dark uppercase text-xs tracking-wider"
+                                            >
                                                 {t('orders.table.actions')}
                                             </Typography>
                                         </th>
@@ -249,6 +257,16 @@ export default function Orders() {
                                                             {t('orders.table.updated')}: {formatDate(order.updatedAt)}
                                                         </Typography>
                                                     )}
+                                                </td>
+                                                <td className="p-4">
+                                                    <div className="space-y-1">
+                                                        <Typography
+                                                            variant="small"
+                                                            className="text-text-light dark:text-text-dark font-medium"
+                                                        >
+                                                            {formatDate(order.date)}
+                                                        </Typography>
+                                                    </div>
                                                 </td>
                                                 <td className="p-4">
                                                     <div className="space-y-1">
@@ -341,8 +359,8 @@ export default function Orders() {
                                                     size="sm"
                                                     onClick={() => setPage(i)}
                                                     className={`min-w-[40px] h-10 flex items-center justify-center ${i === page
-                                                            ? "bg-mainColor text-white hover:bg-blue-700"
-                                                            : "border-gray-300 dark:border-gray-700 text-text-light dark:text-text-dark hover:bg-gray-100 dark:hover:bg-gray-800"
+                                                        ? "bg-mainColor text-white hover:bg-blue-700"
+                                                        : "border-gray-300 dark:border-gray-700 text-text-light dark:text-text-dark hover:bg-gray-100 dark:hover:bg-gray-800"
                                                         }`}
                                                 >
                                                     {i}

@@ -1,15 +1,21 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useStockGetSearchQuery } from '@/store/services/stock.api';
 import { useCreateOrderMutation } from '@/store/services/order.api';
+import { useGetFactoryQuery } from '@/store/services/location.api';
 import Loading from '../../Other/UI/Loadings/Loading';
 import Error from '../../Other/UI/Error';
 import debounce from 'lodash/debounce';
-import { SearchIcon, ChevronLeft, ChevronRight, Package, ShoppingCart, CheckCircle, Plus, X, Edit2, Send, Trash2, ChevronsLeft, ChevronsRight, Hash, DollarSign, Box, FileText, Building2 } from 'lucide-react';
+import { SearchIcon, ChevronLeft, ChevronRight, Package, ShoppingCart, CheckCircle, Plus, X, Edit2, Send, Trash2, ChevronsLeft, ChevronsRight, Hash, DollarSign, Box, FileText, Building2, Factory, Filter, Loader2 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import Cookies from 'js-cookie';
 import { useTranslation } from 'react-i18next';
+import CartModal from './__components/CartModal';
+import ManualProductForm from './__components/ManualProductForm';
+import FactorySidebar from './__components/FactorySidebar';
+import ProductGrid from './__components/ProductGrid';
+import Pagination from './__components/Pagination';
 
 export default function OrderCreate() {
     const { t } = useTranslation();
@@ -18,18 +24,27 @@ export default function OrderCreate() {
     const [selectedProducts, setSelectedProducts] = useState([]);
     const [showManualAdd, setShowManualAdd] = useState(false);
     const [showCartModal, setShowCartModal] = useState(false);
-    const [manualProduct, setManualProduct] = useState({
-        name: '',
-        quantity: '',
-        unit: '',
-        notes: ''
-    });
+    const [selectedFactory, setSelectedFactory] = useState('all');
 
-    // Запрос данных товаров с пагинацией
-    const { data, isLoading, error } = useStockGetSearchQuery({
-        search: searchTerm,
-        page: page
-    });
+    const searchInputRef = useRef(null);
+    const lastSearchRef = useRef('');
+
+    // Получаем список всех фабрик
+    const { data: factoriesData, isLoading: isLoadingFactories } = useGetFactoryQuery();
+
+    const shouldSkip = !searchTerm && !selectedFactory;
+
+    const { data, isLoading, error, isFetching } = useStockGetSearchQuery(
+        {
+            search: searchTerm || '',
+            page,
+            location_id: selectedFactory || 'all',
+        },
+        {
+            skip: shouldSkip,
+            refetchOnMountOrArgChange: true,
+        }
+    );
 
     // Mutation для создания заказа
     const [createOrder, { isLoading: isCreatingOrder }] = useCreateOrderMutation();
@@ -37,8 +52,11 @@ export default function OrderCreate() {
     // Дебаунс для поиска
     const debouncedSearch = useCallback(
         debounce((value) => {
-            setPage(1);
-        }, 500),
+            if (value !== lastSearchRef.current) {
+                lastSearchRef.current = value;
+                setPage(1);
+            }
+        }, 300),
         []
     );
 
@@ -47,6 +65,15 @@ export default function OrderCreate() {
         const value = e.target.value;
         setSearchTerm(value);
         debouncedSearch(value);
+    };
+
+    // Обработчик изменения фабрики
+    const handleFactoryChange = (factoryId) => {
+        setSelectedFactory(factoryId);
+        setPage(1);
+        if (searchInputRef.current) {
+            searchInputRef.current.focus();
+        }
     };
 
     // Данные из API
@@ -63,6 +90,23 @@ export default function OrderCreate() {
             limit: 15
         };
     }, [data]);
+
+    // Данные фабрик
+    const factories = useMemo(() => {
+        if (!factoriesData) return [];
+
+        return [
+            {
+                location_id: 'all',
+                name: t('orderCreate.factories.all'),
+                product_count: pagination.totalCount || 0
+            },
+            ...factoriesData.map(factory => ({
+                ...factory,
+                product_count: 0
+            }))
+        ];
+    }, [factoriesData, pagination.totalCount, t]);
 
     // Обработчик изменения страницы
     const handlePageChange = (newPage) => {
@@ -87,7 +131,9 @@ export default function OrderCreate() {
                 quantity: '',
                 unit: unit,
                 purchase_price: product.purchase_price,
-                isManual: false
+                isManual: false,
+                factory_id: product.product?.location?.id || null,
+                factory_name: product.product?.location?.name || ''
             };
 
             setSelectedProducts(prev => [...prev, newProduct]);
@@ -123,83 +169,34 @@ export default function OrderCreate() {
         setSelectedProducts(prev => prev.filter(p => p.id !== productId));
     };
 
-    // Обработчик изменения ручного ввода продукта
-    const handleManualProductChange = (e) => {
-        const { name, value } = e.target;
-        setManualProduct(prev => ({
-            ...prev,
-            [name]: value
-        }));
-    };
-
-    // Добавление товара вручную
-    const handleAddManualProduct = () => {
-        if (!manualProduct.name.trim()) {
-            Swal.fire({
-                icon: 'warning',
-                title: t('orderCreate.validation.nameRequired'),
-                text: '',
-                confirmButtonText: 'OK',
-            });
-            return;
-        }
-
-        const productId = `manual-${Date.now()}`;
-        const manualProductData = {
-            id: productId,
-            product_id: null,
-            name: manualProduct.name,
-            quantity: manualProduct.quantity || '',
-            unit: manualProduct.unit || '',
-            notes: manualProduct.notes || '',
-            isManual: true
-        };
-
-        setSelectedProducts(prev => [...prev, manualProductData]);
-        setManualProduct({
-            name: '',
-            quantity: '',
-            unit: '',
-            notes: ''
-        });
-        setShowManualAdd(false);
-
+    // Очистка корзины
+    const handleClearCart = () => {
         Swal.fire({
-            toast: true,
-            position: 'top-end',
-            icon: 'success',
-            title: t('orderCreate.notifications.manualProductAdded'),
-            showConfirmButton: false,
-            timer: 2000,
-            timerProgressBar: true,
-        });
-    };
-
-    // Подготовка данных для отправки заказа
-    const prepareOrderData = (userData) => {
-        const items = selectedProducts.map(product => {
-            if (product.isManual) {
-                return {
-                    product_name: product.name,
-                    quantity: product.quantity || 0
-                };
+            title: t('orderCreate.notifications.clearCart.title'),
+            text: t('orderCreate.notifications.clearCart.message'),
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: t('orderCreate.notifications.clearCart.confirm'),
+            cancelButtonText: t('orderCreate.notifications.clearCart.cancel'),
+        }).then((result) => {
+            if (result.isConfirmed) {
+                setSelectedProducts([]);
+                Swal.fire({
+                    icon: 'success',
+                    title: t('orderCreate.notifications.clearCart.success'),
+                    timer: 1500,
+                    showConfirmButton: false,
+                });
             }
-
-            return {
-                product_id: product.product_id,
-                product_name: product.name,
-                quantity: product.quantity || 0
-            };
         });
-
-        return {
-            ...userData,
-            items: items
-        };
     };
 
     // Создание заказа
-    const handleCreateOrder = async () => {
+    const handleCreateOrder = async (cartData) => {
+        const { date, is_logist, note } = cartData;
+
         if (selectedProducts.length === 0) {
             Swal.fire({
                 icon: 'warning',
@@ -228,13 +225,39 @@ export default function OrderCreate() {
             return;
         }
 
+        // Проверяем обязательные поля из корзины
+        if (!date || is_logist === null) {
+            Swal.fire({
+                icon: 'error',
+                title: t('orderCreate.notifications.missingFields.title'),
+                text: t('orderCreate.notifications.missingFields.message'),
+                confirmButtonText: 'OK',
+            });
+            return;
+        }
+
         try {
-            const userData = {
-                location_id: Cookies?.get(`location_id`)
+            // Подготавливаем данные согласно вашей структуре
+            const orderDataToSend = {
+                location_id: Cookies?.get('location_id'),
+                note: note || undefined,
+                items: selectedProducts.map(product => ({
+                    product_id: product.isManual ? undefined : product.product_id,
+                    product_name: product.name,
+                    quantity: Number(product.quantity) || 0
+                })),
+                date: date,
+                is_logist: is_logist
             };
 
-            const orderDataToSend = prepareOrderData(userData);
+            // Убираем undefined поля
+            Object.keys(orderDataToSend).forEach(key => {
+                if (orderDataToSend[key] === undefined) {
+                    delete orderDataToSend[key];
+                }
+            });
 
+            // Показываем загрузку
             Swal.fire({
                 title: t('orderCreate.notifications.creatingOrder.title'),
                 text: t('orderCreate.notifications.creatingOrder.message'),
@@ -244,8 +267,10 @@ export default function OrderCreate() {
                 },
             });
 
+            // Отправляем запрос
             const response = await createOrder(orderDataToSend).unwrap();
 
+            // Успешное создание
             Swal.fire({
                 icon: 'success',
                 title: t('orderCreate.notifications.orderCreated.title'),
@@ -256,12 +281,15 @@ export default function OrderCreate() {
                             <p class="text-sm text-slate-600 dark:text-slate-400 mb-2">${t('orderCreate.notifications.orderCreated.details')}:</p>
                             <p class="text-slate-700 dark:text-slate-300 text-sm">${t('orderCreate.notifications.orderCreated.itemsCount')}: ${selectedProducts.length}</p>
                             <p class="text-slate-700 dark:text-slate-300 text-sm mt-1">${t('orderCreate.notifications.orderCreated.totalSum')}: ${selectedProducts.reduce((sum, p) => sum + ((p.quantity || 0) * (p.purchase_price || 0)), 0).toLocaleString('ru-RU')} сум</p>
+                            <p class="text-slate-700 dark:text-slate-300 text-sm mt-1">${t('orderCreate.notifications.orderCreated.deliveryDate')}: ${new Date(date).toLocaleDateString('ru-RU')}</p>
+                            <p class="text-slate-700 dark:text-slate-300 text-sm mt-1">${t('orderCreate.notifications.orderCreated.logistics')}: ${is_logist ? t('common.yes') : t('common.no')}</p>
                         </div>
                     </div>
                 `,
                 confirmButtonText: 'OK',
             });
 
+            // Очищаем данные
             setSelectedProducts([]);
             setShowCartModal(false);
 
@@ -283,70 +311,31 @@ export default function OrderCreate() {
         return selectedProducts.some(p => p.product_id === productId);
     };
 
-    // Сброс на первую страницу при изменении поиска
+    // Автофокус на поле поиска при загрузке
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (searchInputRef.current) {
+                searchInputRef.current.focus();
+                searchInputRef.current.setSelectionRange(
+                    searchInputRef.current.value.length,
+                    searchInputRef.current.value.length
+                );
+            }
+        }, 100);
+
+        return () => clearTimeout(timer);
+    }, []);
+
+    // Сброс на первую страницу при изменении поиска или фабрики
     useEffect(() => {
         setPage(1);
-    }, [searchTerm]);
+    }, [searchTerm, selectedFactory]);
 
-    // Генерация номеров страниц для отображения
-    const getPageNumbers = () => {
-        const pages = [];
-        const maxVisiblePages = 5;
-        const totalPages = pagination.totalPages;
-
-        if (totalPages <= maxVisiblePages) {
-            for (let i = 1; i <= totalPages; i++) {
-                pages.push(i);
-            }
-        } else {
-            let startPage = Math.max(1, page - 2);
-            let endPage = Math.min(totalPages, page + 2);
-
-            if (page <= 3) {
-                endPage = Math.min(maxVisiblePages, totalPages);
-            }
-
-            if (page >= totalPages - 2) {
-                startPage = Math.max(1, totalPages - maxVisiblePages + 1);
-            }
-
-            for (let i = startPage; i <= endPage; i++) {
-                pages.push(i);
-            }
-        }
-
-        return pages;
-    };
-
-    // Компонент кнопки пагинации
-    const PaginationButton = ({ children, onClick, disabled, active = false, className = '' }) => (
-        <button
-            onClick={onClick}
-            disabled={disabled}
-            className={`
-                flex items-center justify-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200
-                ${active
-                    ? 'bg-mainColor text-white shadow-md'
-                    : 'bg-card-light dark:bg-card-dark text-text-light dark:text-text-dark hover:bg-gray-200 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600'
-                }
-                ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-md'}
-                ${className}
-            `}
-        >
-            {children}
-        </button>
-    );
-
-    // Общая сумма заказа
-    const totalOrderSum = useMemo(() => {
-        return selectedProducts.reduce((sum, p) => sum + ((p.quantity || 0) * (p.purchase_price || 0)), 0);
-    }, [selectedProducts]);
-
-    if (isLoading) return <Loading />;
+    if (isLoadingFactories) return <Loading />;
 
     return (
         <div className="min-h-screen bg-bg-light dark:bg-bg-dark pb-20">
-            <div className=" mx-auto">
+            <div className="mx-auto">
                 {/* Заголовок */}
                 <div className="mb-6 md:mb-8">
                     <h1 className="text-2xl md:text-3xl font-bold text-text-light dark:text-text-dark">
@@ -357,10 +346,10 @@ export default function OrderCreate() {
                     </p>
                 </div>
 
-                {/* Поиск */}
+                {/* Поиск и кнопка добавления вручную */}
                 <div className="bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6 mb-6">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-                        <div>
+                        <div className="flex-1">
                             <h2 className="text-lg md:text-xl font-semibold text-text-light dark:text-text-dark">
                                 {t('orderCreate.search.title')}
                             </h2>
@@ -379,314 +368,154 @@ export default function OrderCreate() {
                         </button>
                     </div>
 
+                    {/* Поле поиска */}
                     <div className="relative">
                         <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                         <input
+                            ref={searchInputRef}
                             type="text"
                             placeholder={t('orderCreate.search.placeholder')}
                             value={searchTerm}
                             onChange={handleSearchChange}
-                            className="w-full pl-10 pr-4 py-3 bg-card-light dark:bg-card-dark border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-mainColor focus:border-transparent text-text-light dark:text-text-dark"
+                            className="w-full pl-10 pr-12 py-3 bg-card-light dark:bg-card-dark border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-mainColor focus:border-transparent text-text-light dark:text-text-dark transition-all duration-200"
                         />
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                            {isFetching ? (
+                                <Loader2 className="w-5 h-5 text-mainColor animate-spin" />
+                            ) : (
+                                searchTerm && (
+                                    <button
+                                        onClick={() => {
+                                            setSearchTerm('');
+                                            if (searchInputRef.current) {
+                                                searchInputRef.current.focus();
+                                            }
+                                        }}
+                                        className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                                    >
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                )
+                            )}
+                        </div>
                     </div>
                 </div>
 
                 {/* Форма добавления вручную */}
                 {showManualAdd && (
-                    <div className="bg-card-light dark:bg-card-dark rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-4 md:p-6 mb-6 animate-slideDown">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
-                                    <Plus className="w-5 h-5 text-mainColor dark:text-blue-400" />
-                                </div>
-                                <div>
-                                    <h3 className="text-lg font-medium text-text-light dark:text-text-dark">
-                                        {t('orderCreate.manualAdd.title')}
-                                    </h3>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                                        {t('orderCreate.search.addManualTooltip')}
-                                    </p>
-                                </div>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => setShowManualAdd(false)}
-                                className="text-gray-400 hover:text-text-light dark:hover:text-text-dark transition-colors"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    {t('orderCreate.manualAdd.nameLabel')}
-                                </label>
-                                <input
-                                    type="text"
-                                    name="name"
-                                    value={manualProduct.name}
-                                    onChange={handleManualProductChange}
-                                    className="w-full px-4 py-2.5 bg-card-light dark:bg-card-dark border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-mainColor focus:border-transparent text-text-light dark:text-text-dark"
-                                    placeholder={t('orderCreate.manualAdd.namePlaceholder')}
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        {t('orderCreate.manualAdd.quantityLabel')}
-                                    </label>
-                                    <input
-                                        type="number"
-                                        name="quantity"
-                                        value={manualProduct.quantity}
-                                        onChange={handleManualProductChange}
-                                        className="w-full px-4 py-2.5 bg-card-light dark:bg-card-dark border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-mainColor focus:border-transparent text-text-light dark:text-text-dark"
-                                        placeholder="0"
-                                        min="0"
-                                        step="1"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        {t('orderCreate.manualAdd.unitLabel')}
-                                    </label>
-                                    <select
-                                        name="unit"
-                                        value={manualProduct.unit}
-                                        onChange={handleManualProductChange}
-                                        className="w-full px-4 py-2.5 bg-card-light dark:bg-card-dark border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-mainColor focus:border-transparent text-text-light dark:text-text-dark"
-                                    >
-                                        <option value="">{t('orderCreate.manualAdd.unitOptions.none')}</option>
-                                        <option value="шт">{t('orderCreate.manualAdd.unitOptions.piece')}</option>
-                                        <option value="кг">{t('orderCreate.manualAdd.unitOptions.kg')}</option>
-                                        <option value="л">{t('orderCreate.manualAdd.unitOptions.litre')}</option>
-                                        <option value="м">{t('orderCreate.manualAdd.unitOptions.meter')}</option>
-                                        <option value="м²">{t('orderCreate.manualAdd.unitOptions.m2')}</option>
-                                        <option value="м³">{t('orderCreate.manualAdd.unitOptions.m3')}</option>
-                                        <option value="упак">{t('orderCreate.manualAdd.unitOptions.pack')}</option>
-                                        <option value="рулон">{t('orderCreate.manualAdd.unitOptions.roll')}</option>
-                                        <option value="мешок">{t('orderCreate.manualAdd.unitOptions.bag')}</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    {t('orderCreate.manualAdd.notesLabel')}
-                                </label>
-                                <input
-                                    type="text"
-                                    name="notes"
-                                    value={manualProduct.notes}
-                                    onChange={handleManualProductChange}
-                                    className="w-full px-4 py-2.5 bg-card-light dark:bg-card-dark border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-mainColor focus:border-transparent text-text-light dark:text-text-dark"
-                                    placeholder={t('orderCreate.manualAdd.notesPlaceholder')}
-                                />
-                            </div>
-
-                            <div className="flex gap-3 pt-2">
-                                <button
-                                    type="button"
-                                    onClick={handleAddManualProduct}
-                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-mainColor hover:bg-blue-700 text-white rounded-lg font-medium transition-all shadow-md hover:shadow-lg"
-                                >
-                                    <Plus className="w-4 h-4" />
-                                    {t('orderCreate.manualAdd.addButton')}
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setShowManualAdd(false)}
-                                    className="flex-1 px-4 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-300 rounded-lg font-medium transition-colors"
-                                >
-                                    {t('orderCreate.manualAdd.cancelButton')}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                    <ManualProductForm
+                        onClose={() => setShowManualAdd(false)}
+                        onAddManualProduct={(productData) => {
+                            setSelectedProducts(prev => [...prev, productData]);
+                            setShowManualAdd(false);
+                        }}
+                    />
                 )}
 
-                {/* Результаты поиска */}
-                <div className="bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                        <div>
-                            <h2 className="text-lg md:text-xl font-semibold text-text-light dark:text-text-dark">
-                                {t('orderCreate.productList.title')}
-                            </h2>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                {t('orderCreate.search.found')}: <span className="font-medium text-mainColor">
-                                    {pagination.totalCount.toLocaleString('ru-RU')}
-                                </span>
-                            </p>
-                        </div>
-
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
-                            {t('orderCreate.search.showing', {
-                                count: products.length,
-                                total: pagination.totalCount
-                            })}
-                        </div>
+                {/* Основной контент: Фабрики и товары */}
+                <div className="flex flex-col lg:flex-row gap-2">
+                    {/* Блок фильтрации по фабрикам (левая панель - 20%) */}
+                    <div className="lg:w-[25%]">
+                        <FactorySidebar
+                            factories={factories}
+                            selectedFactory={selectedFactory}
+                            onFactoryChange={handleFactoryChange}
+                            isLoading={isFetching}
+                        />
                     </div>
 
-                    {products.length === 0 ? (
-                        <div className="text-center py-16">
-                            <div className="inline-flex items-center justify-center p-4 bg-gray-100 dark:bg-gray-900 rounded-full mb-4">
-                                <Package className="w-12 h-12 text-gray-400" />
-                            </div>
-                            <p className="text-gray-600 dark:text-gray-400 text-lg mb-2">
-                                {searchTerm ? t('orderCreate.search.noResults.withSearch') : t('orderCreate.search.noResults.withoutSearch')}
-                            </p>
-                            <p className="text-gray-500 dark:text-gray-500 text-sm">
-                                {searchTerm
-                                    ? t('orderCreate.search.noResults.hintSearch')
-                                    : t('orderCreate.search.noResults.hintNoSearch')
-                                }
-                            </p>
-                        </div>
-                    ) : (
-                        <>
-                            {/* Список товаров */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
-                                {products.map((product) => {
-                                    const isSelected = isProductSelected(product);
-                                    const productName = product.product?.name || product.name;
-
-                                    return (
-                                        <div
-                                            key={product.id}
-                                            onClick={() => handleProductSelect(product)}
-                                            className={`relative p-4 rounded-xl border cursor-pointer transition-all duration-300 transform hover:scale-105 ${isSelected
-                                                ? 'bg-blue-50 dark:bg-blue-900/20 border-mainColor dark:border-blue-700 ring-2 ring-blue-200 dark:ring-blue-900/50 shadow-lg'
-                                                : 'bg-card-light dark:bg-card-dark border-gray-200 dark:border-gray-700 hover:border-mainColor dark:hover:border-blue-600 hover:shadow-md'
-                                                }`}
-                                        >
-                                            <div className="flex items-center justify-between mb-3">
-                                                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${isSelected
-                                                    ? 'bg-mainColor border-mainColor scale-110'
-                                                    : 'border-gray-300 dark:border-gray-600'
-                                                    }`}>
-                                                    {isSelected && (
-                                                        <CheckCircle className="w-4 h-4 text-white" />
-                                                    )}
-                                                </div>
-                                                {(product.unit || product.product?.unit) && (
-                                                    <div className="flex items-center gap-1 text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-gray-600 dark:text-gray-400 font-medium">
-                                                        <Box className="w-3 h-3" />
-                                                        {product.unit || product.product?.unit}
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            <h4 className="font-medium text-text-light dark:text-text-dark mb-2 line-clamp-2 min-h-[2.5rem]">
-                                                {productName}
-                                            </h4>
-
-                                            {product.product?.category?.name && (
-                                                <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 mb-3 truncate">
-                                                    <Package className="w-3 h-3 flex-shrink-0" />
-                                                    <span>{product.product.category.name}</span>
-                                                </div>
-                                            )}
-
-                                            <div className="space-y-2">
-                                                {product.purchase_price && (
-                                                    <div className="flex items-center gap-1.5 text-sm text-mainColor dark:text-blue-400 font-semibold">
-                                                        <DollarSign className="w-4 h-4" />
-                                                        {parseInt(product.purchase_price).toLocaleString('ru-RU')} сум
-                                                    </div>
-                                                )}
-                                                <div className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400">
-                                                    <Building2 className="w-3 h-3" />
-                                                    {product?.product?.location?.name}
-                                                </div>
-                                            </div>
-
-                                            {isSelected && (
-                                                <div className="absolute -top-2 -right-2 animate-bounce-slow">
-                                                    <div className="w-8 h-8 bg-gradient-to-br from-mainColor to-blue-600 rounded-full flex items-center justify-center shadow-lg">
-                                                        <ShoppingCart className="w-4 h-4 text-white" />
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-
-                            {/* Пагинация */}
-                            {pagination.totalPages > 1 && (
-                                <div className="flex flex-col items-center gap-4 pt-6 border-t border-gray-200 dark:border-gray-700">
-                                    <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-                                        {t('orderCreate.pagination.page')} {pagination.currentPage} {t('orderCreate.pagination.of')} {pagination.totalPages}
-                                    </div>
-
-                                    <div className="flex flex-wrap items-center justify-center gap-2">
-                                        <PaginationButton
-                                            onClick={() => handlePageChange(1)}
-                                            disabled={pagination.currentPage === 1}
-                                            title={t('orderCreate.pagination.firstPage')}
-                                        >
-                                            <ChevronsLeft className="w-4 h-4" />
-                                        </PaginationButton>
-
-                                        <PaginationButton
-                                            onClick={() => handlePageChange(pagination.currentPage - 1)}
-                                            disabled={pagination.currentPage === 1}
-                                            title={t('orderCreate.pagination.previousPage')}
-                                        >
-                                            <ChevronLeft className="w-4 h-4" />
-                                        </PaginationButton>
-
-                                        {getPageNumbers().map(pageNum => (
-                                            <PaginationButton
-                                                key={pageNum}
-                                                onClick={() => handlePageChange(pageNum)}
-                                                active={pagination.currentPage === pageNum}
-                                            >
-                                                {pageNum}
-                                            </PaginationButton>
-                                        ))}
-
-                                        <PaginationButton
-                                            onClick={() => handlePageChange(pagination.currentPage + 1)}
-                                            disabled={pagination.currentPage === pagination.totalPages}
-                                            title={t('orderCreate.pagination.nextPage')}
-                                        >
-                                            <ChevronRight className="w-4 h-4" />
-                                        </PaginationButton>
-
-                                        <PaginationButton
-                                            onClick={() => handlePageChange(pagination.totalPages)}
-                                            disabled={pagination.currentPage === pagination.totalPages}
-                                            title={t('orderCreate.pagination.lastPage')}
-                                        >
-                                            <ChevronsRight className="w-4 h-4" />
-                                        </PaginationButton>
-                                    </div>
-
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-sm text-gray-600 dark:text-gray-400">{t('orderCreate.pagination.goTo')}:</span>
-                                        <input
-                                            type="number"
-                                            min="1"
-                                            max={pagination.totalPages}
-                                            value={page}
-                                            onChange={(e) => {
-                                                const value = parseInt(e.target.value);
-                                                if (value >= 1 && value <= pagination.totalPages) {
-                                                    handlePageChange(value);
-                                                }
-                                            }}
-                                            className="w-20 px-3 py-1.5 text-sm bg-card-light dark:bg-card-dark border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-mainColor text-text-light dark:text-text-dark text-center"
-                                        />
-                                        <span className="text-sm text-gray-600 dark:text-gray-400">{t('orderCreate.pagination.of')} {pagination.totalPages}</span>
-                                    </div>
+                    {/* Блок товаров (правая панель - 80%) */}
+                    <div className="lg:w-[85%]">
+                        <div className="bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                                <div>
+                                    <h2 className="text-lg md:text-xl font-semibold text-text-light dark:text-text-dark">
+                                        {selectedFactory === 'all'
+                                            ? t('orderCreate.productList.titleAll')
+                                            : t('orderCreate.productList.titleFactory', {
+                                                factory: factories.find(f => f.id === selectedFactory)?.name || ''
+                                            })
+                                        }
+                                    </h2>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                        {t('orderCreate.search.found')}: <span className="font-medium text-mainColor">
+                                            {pagination.totalCount.toLocaleString('ru-RU')}
+                                        </span>
+                                    </p>
                                 </div>
+
+                              
+                            </div>
+
+                            {isLoading ? (
+                                <div className="flex justify-center py-12">
+                                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-mainColor"></div>
+                                </div>
+                            ) : products.length === 0 ? (
+                                <div className="text-center py-16">
+                                    <div className="inline-flex items-center justify-center p-4 bg-gray-100 dark:bg-gray-900 rounded-full mb-4">
+                                        <Package className="w-12 h-12 text-gray-400" />
+                                    </div>
+                                    <p className="text-gray-600 dark:text-gray-400 text-lg mb-2">
+                                        {searchTerm ? t('orderCreate.search.noResults.withSearch') : t('orderCreate.search.noResults.withoutSearch')}
+                                    </p>
+                                    <p className="text-gray-500 dark:text-gray-500 text-sm">
+                                        {searchTerm
+                                            ? t('orderCreate.search.noResults.hintSearch')
+                                            : t('orderCreate.search.noResults.hintNoSearch')
+                                        }
+                                    </p>
+                                </div>
+                            ) : (
+                                <>
+                                    {/* Список товаров */}
+                                    <ProductGrid
+                                        products={products}
+                                        selectedProducts={selectedProducts}
+                                        onProductSelect={handleProductSelect}
+                                        isProductSelected={isProductSelected}
+                                    />
+
+                                    {/* Пагинация */}
+                                    {pagination.totalPages > 1 && (
+                                        <Pagination
+                                            pagination={pagination}
+                                            currentPage={page}
+                                            onPageChange={handlePageChange}
+                                            getPageNumbers={() => {
+                                                const pages = [];
+                                                const maxVisiblePages = 5;
+                                                const totalPages = pagination.totalPages;
+
+                                                if (totalPages <= maxVisiblePages) {
+                                                    for (let i = 1; i <= totalPages; i++) {
+                                                        pages.push(i);
+                                                    }
+                                                } else {
+                                                    let startPage = Math.max(1, page - 2);
+                                                    let endPage = Math.min(totalPages, page + 2);
+
+                                                    if (page <= 3) {
+                                                        endPage = Math.min(maxVisiblePages, totalPages);
+                                                    }
+
+                                                    if (page >= totalPages - 2) {
+                                                        startPage = Math.max(1, totalPages - maxVisiblePages + 1);
+                                                    }
+
+                                                    for (let i = startPage; i <= endPage; i++) {
+                                                        pages.push(i);
+                                                    }
+                                                }
+
+                                                return pages;
+                                            }}
+                                        />
+                                    )}
+                                </>
                             )}
-                        </>
-                    )}
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -709,209 +538,18 @@ export default function OrderCreate() {
                 </div>
             </button>
 
-            {/* Модальное окно корзины - Material Design Style */}
-            {showCartModal && (
-                <div
-                    className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2"
-                    onClick={() => setShowCartModal(false)}
-                >
-                    <div
-                        className="bg-white dark:bg-gray-900 w-full max-w-4xl rounded-2xl shadow-lg max-h-[85vh] flex flex-col overflow-hidden"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        {/* Заголовок */}
-                        <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-mainColor to-blue-600 text-white">
-                            <div className="flex items-center gap-3">
-                                <ShoppingCart className="w-6 h-6" />
-                                <div>
-                                    <h2 className="font-semibold text-lg">{t('orderCreate.cart.title')}</h2>
-                                    <p className="text-xs text-white/80">
-                                        {t('orderCreate.cart.itemCount', { count: selectedProducts.length })}
-                                    </p>
-                                </div>
-                            </div>
-                            <button
-                                onClick={() => setShowCartModal(false)}
-                                className="p-1 hover:bg-white/20 rounded"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-
-                        {/* Содержимое корзины */}
-                        <div className="flex-1 overflow-y-auto p-4 bg-gray-50 dark:bg-gray-800/50 space-y-3">
-                            {selectedProducts.length === 0 ? (
-                                <div className="text-center py-10">
-                                    <Package className="w-12 h-12 text-mainColor dark:text-blue-400 mx-auto mb-3" />
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                                        {t('orderCreate.cart.empty')}
-                                    </p>
-                                </div>
-                            ) : (
-                                <div className="space-y-2">
-                                    {selectedProducts.map((product) => (
-                                        <div
-                                            key={product.id}
-                                            className={`relative flex items-center justify-between p-3 rounded-lg border transition-all ${product.isManual
-                                                ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-300 dark:border-amber-700'
-                                                : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700'
-                                                }`}
-                                        >
-                                            {/* Информация о продукте */}
-                                            <div className="flex items-center gap-3 flex-1 min-w-0">
-                                                <div className={`w-8 h-8 flex items-center justify-center rounded-md text-white ${product.isManual ? 'bg-amber-500' : 'bg-mainColor'
-                                                    }`}>
-                                                    {product.isManual ? <Edit2 className="w-4 h-4" /> : <Package className="w-4 h-4" />}
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{product.name}</h4>
-                                                    <div className="flex items-center gap-1 mt-1 flex-wrap text-xs">
-                                                        {product.unit && (
-                                                            <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded">{product.unit}</span>
-                                                        )}
-                                                        {product.isManual && (
-                                                            <span className="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded">
-                                                                {t('orderCreate.cart.manualLabel')}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* Количество и удаление */}
-                                            <div className="flex items-center gap-2 ml-3">
-                                                <input
-                                                    type="number"
-                                                    min="0"
-                                                    value={product.quantity}
-                                                    onChange={(e) => handleQuantityChange(product.id, e.target.value)}
-                                                    className="w-16 px-2 py-1 text-sm text-center border rounded-md dark:bg-gray-800 dark:border-gray-600"
-                                                />
-                                                <button
-                                                    onClick={() => handleRemoveProduct(product.id)}
-                                                    className="p-1 bg-red-500 hover:bg-red-600 rounded text-white"
-                                                    title={t('orderCreate.cart.remove')}
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Футер с суммой и кнопками */}
-                        {selectedProducts.length > 0 && (
-                            <div className="px-4 py-3 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 flex flex-col gap-3">
-                                <div className="flex justify-between text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    <span>{t('orderCreate.cart.totalItems')}:</span>
-                                    <span>{selectedProducts.length}</span>
-                                </div>
-                                <div className="flex justify-between text-sm font-medium text-green-600 dark:text-green-400">
-                                    <span>{t('orderCreate.cart.totalSum')}:</span>
-                                    <span>{totalOrderSum.toLocaleString('ru-RU')} сум</span>
-                                </div>
-                                <div className="flex gap-2 mt-2">
-                                    <button
-                                        onClick={() => setSelectedProducts([])}
-                                        className="flex-1 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-all text-gray-800 dark:text-gray-200"
-                                    >
-                                        {t('orderCreate.cart.clearButton')}
-                                    </button>
-                                    <button
-                                        onClick={handleCreateOrder}
-                                        disabled={isCreatingOrder}
-                                        className="flex-1 py-2 bg-mainColor hover:bg-blue-700 text-white rounded font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        {isCreatingOrder ? t('orderCreate.cart.creatingOrder') : t('orderCreate.cart.createOrderButton')}
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
-
-            <style jsx>{`
-                @keyframes slideDown {
-                    from {
-                        opacity: 0;
-                        transform: translateY(-20px);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateY(0);
-                    }
-                }
-
-                @keyframes modalOverlay {
-                    from {
-                        opacity: 0;
-                    }
-                    to {
-                        opacity: 1;
-                    }
-                }
-
-                @keyframes modalContent {
-                    from {
-                        opacity: 0;
-                        transform: scale(0.9) translateY(20px);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: scale(1) translateY(0);
-                    }
-                }
-
-                @keyframes slideInItem {
-                    from {
-                        opacity: 0;
-                        transform: translateX(-20px);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateX(0);
-                    }
-                }
-
-                @keyframes bounce-slow {
-                    0%, 100% {
-                        transform: translateY(0);
-                    }
-                    50% {
-                        transform: translateY(-10px);
-                    }
-                }
-                
-                .animate-slideDown {
-                    animation: slideDown 0.3s ease-out;
-                }
-
-                .animate-modalOverlay {
-                    animation: modalOverlay 0.3s ease-out;
-                }
-
-                .animate-modalContent {
-                    animation: modalContent 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-                }
-
-                .animate-slideInItem {
-                    animation: slideInItem 0.4s ease-out;
-                }
-
-                .animate-bounce-slow {
-                    animation: bounce-slow 2s infinite;
-                }
-
-                .line-clamp-2 {
-                    overflow: hidden;
-                    display: -webkit-box;
-                    -webkit-line-clamp: 2;
-                    -webkit-box-orient: vertical;
-                }
-            `}</style>
+            {/* Модальное окно корзины */}
+            <CartModal
+                isOpen={showCartModal}
+                onClose={() => setShowCartModal(false)}
+                selectedProducts={selectedProducts}
+                onQuantityChange={handleQuantityChange}
+                onRemoveProduct={handleRemoveProduct}
+                onClearCart={handleClearCart}
+                onCreateOrder={handleCreateOrder}
+                isCreatingOrder={isCreatingOrder}
+                totalOrderSum={selectedProducts.reduce((sum, p) => sum + ((p.quantity || 0) * (p.purchase_price || 0)), 0)}
+            />
         </div>
     );
 }
