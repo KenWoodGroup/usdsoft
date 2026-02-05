@@ -1,13 +1,12 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { useStockGetSearchQuery } from '@/store/services/stock.api';
-import { useCreateOrderMutation } from '@/store/services/order.api';
-import { useGetFactoryQuery } from '@/store/services/location.api';
+import { useStockGetSearchQuery } from '../../../store/services/stock.api';
+import { useCreateOrderMutation } from '../../../store/services/user.api';
+import { useGetFactoryQuery } from '../../../store/services/location.api';
 import Loading from '../../Other/UI/Loadings/Loading';
-import Error from '../../Other/UI/Error';
 import debounce from 'lodash/debounce';
-import { SearchIcon, ChevronLeft, ChevronRight, Package, ShoppingCart, CheckCircle, Plus, X, Edit2, Send, Trash2, ChevronsLeft, ChevronsRight, Hash, DollarSign, Box, FileText, Building2, Factory, Filter, Loader2 } from 'lucide-react';
+import { SearchIcon, Package, ShoppingCart, Plus, X, Edit2, Send, Trash2, ChevronsLeft, ChevronsRight, Hash, DollarSign, Box, FileText, Building2, Factory, Filter, Loader2 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import Cookies from 'js-cookie';
 import { useTranslation } from 'react-i18next';
@@ -28,7 +27,7 @@ export default function OrderCreate() {
 
     const searchInputRef = useRef(null);
     const lastSearchRef = useRef('');
-
+    // Hello
     // Получаем список всех фабрик
     const { data: factoriesData, isLoading: isLoadingFactories } = useGetFactoryQuery();
 
@@ -444,7 +443,7 @@ export default function OrderCreate() {
                                     </p>
                                 </div>
 
-                              
+
                             </div>
 
                             {isLoading ? (
