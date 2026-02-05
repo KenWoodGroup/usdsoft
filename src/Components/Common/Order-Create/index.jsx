@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useStockGetSearchQuery } from '../../../store/services/stock.api';
-import { useCreateOrderMutation } from '../../../store/services/user.api';
+import { useCreateOrderMutation } from '../../../store/services/Order.api';
 import { useGetFactoryQuery } from '../../../store/services/location.api';
 import Loading from '../../Other/UI/Loadings/Loading';
 import debounce from 'lodash/debounce';
