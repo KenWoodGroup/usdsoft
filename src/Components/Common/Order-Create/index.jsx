@@ -3,7 +3,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useStockGetSearchQuery } from '../../../store/services/stock.api';
 import { useCreateOrderMutation } from '../../../store/services/Order.api';
-import { useGetFactoryQuery } from '../../../store/services/location.api';
 import Loading from '../../Other/UI/Loadings/Loading';
 import debounce from 'lodash/debounce';
 import { SearchIcon, Package, ShoppingCart, Plus, X, Edit2, Send, Trash2, ChevronsLeft, ChevronsRight, Hash, DollarSign, Box, FileText, Building2, Factory, Filter, Loader2 } from 'lucide-react';
@@ -27,17 +26,15 @@ export default function OrderCreate() {
 
     const searchInputRef = useRef(null);
     const lastSearchRef = useRef('');
-    // Hello
-    // Получаем список всех фабрик
-    const { data: factoriesData, isLoading: isLoadingFactories } = useGetFactoryQuery();
 
-    const shouldSkip = !searchTerm && !selectedFactory;
+    // Получаем данные с API (включая locations)
+    const shouldSkip = !searchTerm && selectedFactory === 'all';
 
     const { data, isLoading, error, isFetching } = useStockGetSearchQuery(
         {
             search: searchTerm || '',
             page,
-            location_id: selectedFactory || 'all',
+            location_id: selectedFactory === 'all' ? '' : selectedFactory,
         },
         {
             skip: shouldSkip,
@@ -90,22 +87,23 @@ export default function OrderCreate() {
         };
     }, [data]);
 
-    // Данные фабрик
+    // Данные фабрик из locations API
     const factories = useMemo(() => {
-        if (!factoriesData) return [];
+        const locationsFromApi = data?.locations || [];
 
         return [
             {
-                location_id: 'all',
+                id: 'all',
                 name: t('orderCreate.factories.all'),
                 product_count: pagination.totalCount || 0
             },
-            ...factoriesData.map(factory => ({
-                ...factory,
+            ...locationsFromApi.map(location => ({
+                id: location.id,
+                name: location.name.trim(), // Убираем лишние пробелы
                 product_count: 0
             }))
         ];
-    }, [factoriesData, pagination.totalCount, t]);
+    }, [data?.locations, pagination.totalCount, t]);
 
     // Обработчик изменения страницы
     const handlePageChange = (newPage) => {
@@ -330,8 +328,6 @@ export default function OrderCreate() {
         setPage(1);
     }, [searchTerm, selectedFactory]);
 
-    if (isLoadingFactories) return <Loading />;
-
     return (
         <div className="min-h-screen bg-bg-light dark:bg-bg-dark pb-20">
             <div className="mx-auto">
@@ -413,7 +409,7 @@ export default function OrderCreate() {
 
                 {/* Основной контент: Фабрики и товары */}
                 <div className="flex flex-col lg:flex-row gap-2">
-                    {/* Блок фильтрации по фабрикам (левая панель - 20%) */}
+                    {/* Блок фильтрации по фабрикам (левая панель - 25%) */}
                     <div className="lg:w-[25%]">
                         <FactorySidebar
                             factories={factories}
@@ -423,8 +419,8 @@ export default function OrderCreate() {
                         />
                     </div>
 
-                    {/* Блок товаров (правая панель - 80%) */}
-                    <div className="lg:w-[85%]">
+                    {/* Блок товаров (правая панель - 75%) */}
+                    <div className="lg:w-[75%]">
                         <div className="bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                                 <div>
@@ -442,8 +438,6 @@ export default function OrderCreate() {
                                         </span>
                                     </p>
                                 </div>
-
-
                             </div>
 
                             {isLoading ? (
