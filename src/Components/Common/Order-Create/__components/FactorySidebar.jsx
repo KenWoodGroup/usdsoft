@@ -13,7 +13,7 @@ export default function FactorySidebar({ factories, selectedFactory, onFactoryCh
                 </h3>
             </div>
 
-            <div className="space-y-1 max-h-[calc(100vh-200px)] overflow-y-auto pr-2 custom-scrollbar">
+            <div className="space-y-2 max-h-[calc(100vh-200px)] overflow-y-auto pr-2 custom-scrollbar">
                 {factories.length === 0 ? (
                     <div className="text-center py-8">
                         <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -26,16 +26,16 @@ export default function FactorySidebar({ factories, selectedFactory, onFactoryCh
                             key={factory.id}
                             onClick={() => onFactoryChange(factory.id)}
                             disabled={isLoading}
-                            className={`w-full flex items-center justify-between p-3 rounded-lg transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed ${selectedFactory === factory.id
-                                    ? 'bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300'
-                                    : 'hover:bg-gray-100 dark:hover:bg-gray-800 border border-transparent text-gray-700 dark:text-gray-300'
+                            className={`w-full flex items-center justify-between p-3 rounded-lg transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed border ${selectedFactory === factory.id
+                                    ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 shadow-sm'
+                                    : 'bg-white dark:bg-gray-800/50 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-400 dark:hover:border-gray-500'
                                 }`}
                         >
                             <div className="flex items-center gap-3 flex-1 min-w-0">
                                 <div
-                                    className={`w-2 h-2 rounded-full flex-shrink-0 ${selectedFactory === factory.id
+                                    className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${selectedFactory === factory.id
                                             ? 'bg-blue-500'
-                                            : 'bg-gray-300 dark:bg-gray-600'
+                                            : 'bg-gray-400 dark:bg-gray-500'
                                         }`}
                                 />
                                 <span className="font-medium text-sm truncate" title={factory.name}>
@@ -43,9 +43,12 @@ export default function FactorySidebar({ factories, selectedFactory, onFactoryCh
                                 </span>
                             </div>
 
-                            {/* Опционально: показываем количество товаров, если нужно */}
+                            {/* Показываем количество товаров */}
                             {factory.product_count > 0 && (
-                                <span className="ml-2 text-xs bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded-full flex-shrink-0">
+                                <span className={`ml-2 text-xs px-2 py-1 rounded-full flex-shrink-0 font-medium ${selectedFactory === factory.id
+                                        ? 'bg-blue-100 dark:bg-blue-800/50 text-blue-700 dark:text-blue-300'
+                                        : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                                    }`}>
                                     {factory.product_count}
                                 </span>
                             )}

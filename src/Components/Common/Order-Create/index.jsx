@@ -34,7 +34,7 @@ export default function OrderCreate() {
         {
             search: searchTerm || '',
             page,
-            location_id: selectedFactory === 'all' ? '' : selectedFactory,
+            // Не фильтруем по location_id на уровне API
         },
         {
             skip: shouldSkip,
@@ -63,7 +63,7 @@ export default function OrderCreate() {
         debouncedSearch(value);
     };
 
-    // Обработчик изменения фабрики
+    // Обработчик изменения фабрики - просто меняем выбранную фабрику
     const handleFactoryChange = (factoryId) => {
         setSelectedFactory(factoryId);
         setPage(1);
@@ -72,38 +72,70 @@ export default function OrderCreate() {
         }
     };
 
-    // Данные из API
+    // Данные из API - фильтруем на клиенте
     const products = useMemo(() => {
-        return data?.data || [];
-    }, [data]);
+        const allProducts = data?.data || [];
+
+        // Если выбрано "Все", показываем все товары
+        if (selectedFactory === 'all') {
+            return allProducts;
+        }
+
+        // Фильтруем товары по выбранной фабрике
+        return allProducts.filter(product => {
+            const productLocationId = product.product?.location?.id;
+            return productLocationId === selectedFactory;
+        });
+    }, [data, selectedFactory]);
 
     // Данные пагинации из API
     const pagination = useMemo(() => {
-        return data?.pagination || {
+        const apiPagination = data?.pagination || {
             totalCount: 0,
             totalPages: 1,
             currentPage: 1,
             limit: 15
         };
-    }, [data]);
+
+        // Если фильтруем по фабрике, обновляем totalCount
+        if (selectedFactory !== 'all') {
+            const filteredCount = products.length;
+            return {
+                ...apiPagination,
+                totalCount: filteredCount
+            };
+        }
+
+        return apiPagination;
+    }, [data, products, selectedFactory]);
 
     // Данные фабрик из locations API
     const factories = useMemo(() => {
         const locationsFromApi = data?.locations || [];
+        const allProducts = data?.data || [];
+
+        // Подсчитываем количество товаров для каждой фабрики
+        const factoryCounts = {};
+        allProducts.forEach(product => {
+            const locationId = product.product?.location?.id;
+            if (locationId) {
+                factoryCounts[locationId] = (factoryCounts[locationId] || 0) + 1;
+            }
+        });
 
         return [
             {
                 id: 'all',
                 name: t('orderCreate.factories.all'),
-                product_count: pagination.totalCount || 0
+                product_count: allProducts.length
             },
             ...locationsFromApi.map(location => ({
                 id: location.id,
-                name: location.name.trim(), // Убираем лишние пробелы
-                product_count: 0
+                name: location.name.trim(),
+                product_count: factoryCounts[location.id] || 0
             }))
         ];
-    }, [data?.locations, pagination.totalCount, t]);
+    }, [data?.locations, data?.data, t]);
 
     // Обработчик изменения страницы
     const handlePageChange = (newPage) => {
