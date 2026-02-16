@@ -16,12 +16,12 @@ export const locationApi = createApi({
             ],
         }),
         GetFactory: builder.query({
-            query: () => ({
-                url: `/locations`,
+            query: (FactoryName ) => ({
+                url: `/locations/by-name/factory/12`,
                 method: 'GET',
             }),
             providesTags: (result, error, id) => [
-                { type: 'Location', id },
+                { type: 'factory', id },
             ],
         }),
     }),

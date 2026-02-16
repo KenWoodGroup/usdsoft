@@ -29,59 +29,84 @@
     "defaultMessage": "Ma’lumotlarni yuklashda xatolik yuz berdi. Iltimos, keyinroq urinib ko‘ring.",
     "unknown": "Noma’lum xatolik",
     "retry": "Qayta urinish"
-  },
-  "orderCreate": {
+  },  "orderCreate": {
     "title": "Buyurtma yaratish",
-    "subtitle": "Katalogdan mahsulotlarni tanlang yoki qo‘lda qo‘shing",
+    "subtitle": "Katalogdan mahsulotlarni tanlang yoki qo'lda qo'shing",
     "search": {
       "title": "Mahsulot qidirish",
       "subtitle": "Katalogdan kerakli mahsulotlarni toping",
-      "placeholder": "Mahsulot nomi bo‘yicha qidirish...",
-      "addManual": "Qo‘lda qo‘shish",
-      "addManualTooltip": "Katalogda mavjud bo‘lmagan mahsulot",
+      "placeholder": "Mahsulot nomi bo'yicha qidirish...",
+      "placeholderFiltered": "Tanlangan zavoddan mahsulot qidirish...",
+      "addManual": "Qo'lda qo'shish",
+      "addManualTooltip": "Katalogda mavjud bo'lmagan mahsulot",
       "found": "Topilgan mahsulotlar",
-      "showing": "{total} tadan {count} tasi ko‘rsatilmoqda",
+      "showing": "{total} ta mahsulotdan {count} tasi ko'rsatilmoqda",
+      "mode": {
+        "products": "Mahsulot qidirish",
+        "factories": "Zavod qidirish"
+      },
+      "hint": {
+        "products": "Mahsulotlarni nomi bo'yicha qidirish",
+        "factories": "Zavodlarni nomi bo'yicha qidirish"
+      },
       "noResults": {
         "withSearch": "Mahsulotlar topilmadi",
         "withoutSearch": "Mahsulot qidirishni boshlang",
-        "hintSearch": "Qidiruv so‘zini o‘zgartirib ko‘ring",
+        "hintSearch": "Qidiruv so'rovini o'zgartirib ko'ring",
         "hintNoSearch": "Yuqoridagi qidiruv maydoniga mahsulot nomini kiriting"
       }
     },
+    "factories": {
+      "all": "Barcha zavodlar",
+      "filter": "Zavod bo'yicha filtrlash",
+      "manual": "Qo'lda kiritish",
+      "selected": "Tanlangan zavod",
+      "searchPlaceholder": "Zavod qidirish...",
+      "found": "Topildi",
+      "noResults": "Zavodlar topilmadi",
+      "noSearchResults": "So'rovingiz bo'yicha zavodlar topilmadi",
+      "noFactories": "Zavodlar mavjud emas",
+      "clearSearch": "Qidiruvni tozalash",
+      "notFound": "Zavodlar topilmadi",
+      "notFoundMessage": "Qidiruv so'rovini o'zgartirib ko'ring",
+      "searchError": "Zavod qidirishda xatolik"
+    },
     "manualAdd": {
-      "title": "Mahsulotni qo‘lda qo‘shish",
+      "title": "Mahsulotni qo'lda qo'shish",
       "nameLabel": "Mahsulot nomi *",
-      "namePlaceholder": "Masalan: Maxsus qorishma eritmasi",
-      "quantityLabel": "Miqdor",
-      "unitLabel": "O‘lchov birligi",
+      "namePlaceholder": "Masalan: Maxsus tosh qo'yish eritmasi",
+      "quantityLabel": "Miqdori",
+      "unitLabel": "O'lchov birligi",
       "notesLabel": "Izohlar (ixtiyoriy)",
-      "notesPlaceholder": "Masalan: rang, marka, o‘lcham",
-      "addButton": "Mahsulotni qo‘shish",
+      "notesPlaceholder": "Masalan: ma'lum rang, marka, o'lcham",
+      "addButton": "Mahsulot qo'shish",
       "cancelButton": "Bekor qilish",
       "unitOptions": {
-        "none": "Ko‘rsatilmagan",
+        "none": "Ko'rsatilmagan",
         "piece": "dona",
         "kg": "kg",
         "litre": "l",
         "meter": "m",
         "m2": "m²",
         "m3": "m³",
-        "pack": "qadoq",
+        "pack": "paket",
         "roll": "rulon",
         "bag": "qop"
       }
     },
     "productList": {
+      "titleAll": "Barcha mahsulotlar",
+      "titleFactory": "{factory} zavodi mahsulotlari",
       "title": "Qidiruv natijalari",
       "inStock": "Mavjud",
-      "selected": "Mahsulot qo‘shildi",
-      "manualAdded": "Mahsulot qo‘lda qo‘shildi",
+      "selected": "Mahsulot qo'shildi",
+      "manualAdded": "Mahsulot qo'lda qo'shildi",
       "category": "Kategoriya"
     },
     "pagination": {
       "page": "Sahifa",
       "of": "dan",
-      "goTo": "O‘tish",
+      "goTo": "O'tish",
       "firstPage": "Birinchi sahifa",
       "lastPage": "Oxirgi sahifa",
       "previousPage": "Oldingi sahifa",
@@ -89,23 +114,33 @@
     },
     "cart": {
       "title": "Savat",
-      "empty": "Savat bo‘sh. Katalogdan mahsulot qo‘shing.",
-      "itemCount": "{count} ta mahsulot",
+      "empty": "Savat bo'sh. Katalogdan mahsulot qo'shing.",
+      "itemCount": "{count} {count, plural, one {mahsulot} other {mahsulot}}",
       "clearButton": "Tozalash",
       "createOrderButton": "Buyurtma yaratish",
       "creatingOrder": "Yuborilmoqda...",
       "totalItems": "Jami mahsulotlar",
       "totalSum": "Umumiy summa",
-      "manualLabel": "Qo‘lda",
-      "remove": "O‘chirish"
+      "manualLabel": "Qo'lda",
+      "remove": "O'chirish",
+      "deliveryDate": "Buyurtma qaysi sanaga kerak?",
+      "needDelivery": "Logist tomonidan yetkazib berish kerakmi?",
+      "note": "Izoh",
+      "notePlaceholder": "Buyurtma uchun izoh kiriting (ixtiyoriy)",
+      "noteHint": "Menejer yoki kuryer uchun qo'shimcha ma'lumot",
+      "deliveryDateHint": "Yetkazib berish rejalashtirilgan sana"
     },
     "notifications": {
-      "productAdded": "Mahsulot qo‘shildi",
-      "manualProductAdded": "Mahsulot qo‘lda qo‘shildi",
+      "productAdded": "Mahsulot qo'shildi",
+      "manualProductAdded": "Mahsulot qo'lda qo'shildi",
       "noProducts": "Kamida bitta mahsulot tanlang",
       "missingQuantity": {
         "title": "Diqqat",
-        "message": "Quyidagi mahsulotlarda miqdor ko‘rsatilmagan"
+        "message": "Quyidagi mahsulotlarning miqdori ko'rsatilmagan"
+      },
+      "missingFields": {
+        "title": "Majburiy maydonlar to'ldirilmagan",
+        "message": "Iltimos, yetkazib berish sanasini va logistika variantini tanlang"
       },
       "creatingOrder": {
         "title": "Buyurtma yaratilmoqda...",
@@ -113,32 +148,45 @@
       },
       "orderCreated": {
         "title": "Buyurtma yaratildi!",
-        "message": "Buyurtma muvaffaqiyatli yaratildi va qayta ishlashga yuborildi.",
+        "message": "Buyurtma muvaffaqiyatli yaratildi va ishlovga yuborildi.",
         "details": "Buyurtma tafsilotlari",
         "itemsCount": "Mahsulotlar",
-        "totalSum": "Summa"
+        "totalSum": "Summa",
+        "deliveryDate": "Yetkazib berish sanasi",
+        "logistics": "Logistika"
       },
       "error": {
         "title": "Xatolik",
-        "default": "Buyurtma yaratib bo‘lmadi. Qayta urinib ko‘ring."
+        "default": "Buyurtma yaratib bo'lmadi. Qayta urinib ko'ring."
+      },
+      "clearCart": {
+        "title": "Savatni tozalash?",
+        "message": "Barcha mahsulotlar savatdan o'chiriladi",
+        "confirm": "Ha, tozalash",
+        "cancel": "Bekor qilish",
+        "success": "Savat tozalandi"
       }
     },
     "productCard": {
-      "add": "Mahsulot qo‘shish",
-      "remove": "Mahsulotni o‘chirish",
-      "unit": "O‘lchov birligi",
+      "add": "Mahsulot qo'shish",
+      "remove": "Mahsulotni o'chirish",
+      "unit": "O'lchov birligi",
       "price": "Narx",
       "stock": "Mavjud"
     },
     "validation": {
       "nameRequired": "Mahsulot nomini kiriting",
-      "quantityRequired": "Miqdor kiriting",
-      "quantityInvalid": "Miqdor manfiy bo‘lmagan son bo‘lishi kerak"
+      "quantityRequired": "Miqdorni belgilang",
+      "quantityInvalid": "Miqdor manfiy bo'lmagan son bo'lishi kerak"
     },
     "status": {
       "loading": "Yuklanmoqda...",
       "error": "Yuklashda xatolik"
     }
+  },
+  "common": {
+    "yes": "Ha",
+    "no": "Yo'q"
   },
   "profile": {
     "title": "Kompaniya profili",

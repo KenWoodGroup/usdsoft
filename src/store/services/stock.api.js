@@ -26,7 +26,25 @@ export const stockApi = createApi({
             },
             providesTags: ['Stock'],
         }),
+
+        // Эндпоинт для поиска заводов по названию (возвращает массив заводов)
+        searchFactoryByName: builder.query({
+            query: (factoryName) => ({
+                url: `/locations/by-name/factory/${factoryName}`,
+                method: 'GET',
+            }),
+            providesTags: ['Stock'],
+            // Трансформируем ответ для удобства
+            transformResponse: (response) => {
+                // API возвращает массив: [{ id: "...", name: "..." }, ...]
+                return Array.isArray(response) ? response : [];
+            },
+        }),
     }),
 });
 
-export const { useStockGetSearchQuery } = stockApi;
+export const {
+    useStockGetSearchQuery,
+    useSearchFactoryByNameQuery,
+    useLazySearchFactoryByNameQuery,
+} = stockApi;

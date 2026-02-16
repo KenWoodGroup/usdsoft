@@ -31,32 +31,56 @@
         "retry": "Retry"
     },
     "orderCreate": {
-        "title": "Create order",
-        "subtitle": "Select products from the catalog or add them manually",
+        "title": "Create Order",
+        "subtitle": "Select products from catalog or add manually",
         "search": {
-            "title": "Product search",
+            "title": "Product Search",
             "subtitle": "Find the products you need in the catalog",
             "placeholder": "Search by product name...",
-            "addManual": "Add manually",
-            "addManualTooltip": "Product not available in the catalog",
+            "placeholderFiltered": "Search products in selected factory...",
+            "addManual": "Add Manually",
+            "addManualTooltip": "Product not in catalog",
             "found": "Products found",
             "showing": "Showing {count} of {total} products",
+            "mode": {
+                "products": "Search Products",
+                "factories": "Search Factories"
+            },
+            "hint": {
+                "products": "Search products by name",
+                "factories": "Search factories by name"
+            },
             "noResults": {
                 "withSearch": "No products found",
                 "withoutSearch": "Start searching for products",
                 "hintSearch": "Try changing your search query",
-                "hintNoSearch": "Enter a product name in the search field above"
+                "hintNoSearch": "Enter product name in the search field above"
             }
         },
+        "factories": {
+            "all": "All Factories",
+            "filter": "Filter by Factory",
+            "manual": "Manual Entry",
+            "selected": "Selected Factory",
+            "searchPlaceholder": "Search factory...",
+            "found": "Found",
+            "noResults": "No factories found",
+            "noSearchResults": "No factories found for your search",
+            "noFactories": "No factories",
+            "clearSearch": "Clear search",
+            "notFound": "Factories not found",
+            "notFoundMessage": "Try changing your search query",
+            "searchError": "Factory search error"
+        },
         "manualAdd": {
-            "title": "Add product manually",
-            "nameLabel": "Product name *",
-            "namePlaceholder": "For example: Special masonry mortar",
+            "title": "Add Product Manually",
+            "nameLabel": "Product Name *",
+            "namePlaceholder": "Example: Special mortar for masonry",
             "quantityLabel": "Quantity",
-            "unitLabel": "Unit",
+            "unitLabel": "Unit of Measurement",
             "notesLabel": "Notes (optional)",
-            "notesPlaceholder": "For example: color, brand, size",
-            "addButton": "Add product",
+            "notesPlaceholder": "Example: specific color, brand, size",
+            "addButton": "Add Product",
             "cancelButton": "Cancel",
             "unitOptions": {
                 "none": "Not specified",
@@ -72,10 +96,12 @@
             }
         },
         "productList": {
-            "title": "Search results",
-            "inStock": "In stock",
+            "titleAll": "All Products",
+            "titleFactory": "Products of Factory: {factory}",
+            "title": "Search Results",
+            "inStock": "In Stock",
             "selected": "Product added",
-            "manualAdded": "Manually added",
+            "manualAdded": "Product added manually",
             "category": "Category"
         },
         "pagination": {
@@ -89,15 +115,21 @@
         },
         "cart": {
             "title": "Cart",
-            "empty": "Your cart is empty. Add products from the catalog.",
-            "itemCount": "{count} items",
+            "empty": "Cart is empty. Add products from catalog.",
+            "itemCount": "{count} {count, plural, one {item} other {items}}",
             "clearButton": "Clear",
-            "createOrderButton": "Create order",
-            "creatingOrder": "Submitting...",
+            "createOrderButton": "Create Order",
+            "creatingOrder": "Sending...",
             "totalItems": "Total items",
             "totalSum": "Total amount",
             "manualLabel": "Manual",
-            "remove": "Remove"
+            "remove": "Remove",
+            "deliveryDate": "What date is the order needed for?",
+            "needDelivery": "Is logistics delivery needed?",
+            "note": "Note",
+            "notePlaceholder": "Enter a note for the order (optional)",
+            "noteHint": "Additional information for manager or courier",
+            "deliveryDateHint": "Date scheduled for delivery"
         },
         "notifications": {
             "productAdded": "Product added",
@@ -107,38 +139,55 @@
                 "title": "Attention",
                 "message": "The following products have no quantity specified"
             },
+            "missingFields": {
+                "title": "Required fields are not filled",
+                "message": "Please fill in the delivery date and select logistics option"
+            },
             "creatingOrder": {
                 "title": "Creating order...",
                 "message": "Please wait"
             },
             "orderCreated": {
                 "title": "Order created!",
-                "message": "The order has been successfully created and sent for processing.",
+                "message": "Order successfully created and sent for processing.",
                 "details": "Order details",
                 "itemsCount": "Items",
-                "totalSum": "Total"
+                "totalSum": "Amount",
+                "deliveryDate": "Delivery date",
+                "logistics": "Logistics"
             },
             "error": {
                 "title": "Error",
                 "default": "Failed to create order. Please try again."
+            },
+            "clearCart": {
+                "title": "Clear cart?",
+                "message": "All items will be removed from cart",
+                "confirm": "Yes, clear",
+                "cancel": "Cancel",
+                "success": "Cart cleared"
             }
         },
         "productCard": {
             "add": "Add product",
             "remove": "Remove product",
-            "unit": "Unit",
+            "unit": "Unit of measurement",
             "price": "Price",
             "stock": "In stock"
         },
         "validation": {
             "nameRequired": "Enter product name",
-            "quantityRequired": "Enter quantity",
+            "quantityRequired": "Specify quantity",
             "quantityInvalid": "Quantity must be a non-negative number"
         },
         "status": {
             "loading": "Loading...",
             "error": "Loading error"
         }
+    },
+    "common": {
+        "yes": "Yes",
+        "no": "No"
     },
     "profile": {
         "title": "Company profile",

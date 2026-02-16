@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { useStockGetSearchQuery } from '../../../store/services/stock.api';
+import { useStockGetSearchQuery, useLazySearchFactoryByNameQuery } from '../../../store/services/stock.api';
 import { useCreateOrderMutation } from '../../../store/services/Order.api';
 import Loading from '../../Other/UI/Loadings/Loading';
 import debounce from 'lodash/debounce';
-import { SearchIcon, Package, ShoppingCart, Plus, X, Edit2, Send, Trash2, ChevronsLeft, ChevronsRight, Hash, DollarSign, Box, FileText, Building2, Factory, Filter, Loader2 } from 'lucide-react';
+import { SearchIcon, Package, ShoppingCart, Plus, X, Edit2, Send, Trash2, ChevronsLeft, ChevronsRight, Hash, DollarSign, Box, FileText, Building2, Factory, Filter, Loader2, ToggleLeft, ToggleRight } from 'lucide-react';
 import Swal from 'sweetalert2';
 import Cookies from 'js-cookie';
 import { useTranslation } from 'react-i18next';
@@ -18,23 +18,31 @@ import Pagination from './__components/Pagination';
 export default function OrderCreate() {
     const { t } = useTranslation();
     const [searchTerm, setSearchTerm] = useState('');
+    const [factorySearchTerm, setFactorySearchTerm] = useState('');
     const [page, setPage] = useState(1);
     const [selectedProducts, setSelectedProducts] = useState([]);
     const [showManualAdd, setShowManualAdd] = useState(false);
     const [showCartModal, setShowCartModal] = useState(false);
     const [selectedFactory, setSelectedFactory] = useState('all');
+    const [searchedFactories, setSearchedFactories] = useState([]);
+    const [searchMode, setSearchMode] = useState('products'); // 'products' или 'factories'
 
     const searchInputRef = useRef(null);
+    const factorySearchInputRef = useRef(null);
     const lastSearchRef = useRef('');
 
+    // Lazy query для поиска завода по названию
+    const [searchFactoryByName, { data: factorySearchData, isLoading: isSearchingFactory }] = useLazySearchFactoryByNameQuery();
+
     // Получаем данные с API (включая locations)
+    // Не пропускаем запрос если: есть поиск, выбран конкретный завод, или search='all'
     const shouldSkip = !searchTerm && selectedFactory === 'all';
 
     const { data, isLoading, error, isFetching } = useStockGetSearchQuery(
         {
             search: searchTerm || '',
             page,
-            // Не фильтруем по location_id на уровне API
+            location_id: selectedFactory !== 'all' ? selectedFactory : undefined,
         },
         {
             skip: shouldSkip,
@@ -45,7 +53,7 @@ export default function OrderCreate() {
     // Mutation для создания заказа
     const [createOrder, { isLoading: isCreatingOrder }] = useCreateOrderMutation();
 
-    // Дебаунс для поиска
+    // Дебаунс для поиска товаров
     const debouncedSearch = useCallback(
         debounce((value) => {
             if (value !== lastSearchRef.current) {
@@ -56,60 +64,151 @@ export default function OrderCreate() {
         []
     );
 
-    // Обработчик изменения поиска
+    // Дебаунс для поиска заводов
+    const debouncedFactorySearch = useCallback(
+        debounce((value) => {
+            if (value.trim()) {
+                handleFactorySearch(value.trim());
+            } else {
+                setSearchedFactories([]);
+            }
+        }, 500),
+        []
+    );
+
+    // Обработчик изменения поиска товаров
     const handleSearchChange = (e) => {
         const value = e.target.value;
         setSearchTerm(value);
         debouncedSearch(value);
     };
 
+    // Обработчик изменения поиска заводов
+    const handleFactorySearchChange = (e) => {
+        const value = e.target.value;
+        setFactorySearchTerm(value);
+        debouncedFactorySearch(value);
+    };
+
+    // Обработчик поиска завода
+    const handleFactorySearch = async (factoryName) => {
+        if (!factoryName) {
+            setSearchedFactories([]);
+            return Promise.resolve();
+        }
+
+        try {
+            // Шаг 1: Поиск заводов по названию через API (возвращает массив)
+            const result = await searchFactoryByName(factoryName).unwrap();
+
+            // result - это массив заводов: [{ id: "...", name: "..." }, ...]
+            if (result && Array.isArray(result) && result.length > 0) {
+                // Сохраняем все найденные заводы в список
+                const factories = result.map(factory => ({
+                    id: factory.id,
+                    name: factory.name,
+                    product_count: 0
+                }));
+
+                setSearchedFactories(factories);
+
+                // Показываем уведомление о количестве найденных заводов
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: `${t('orderCreate.factories.found') || 'Найдено'}: ${result.length}`,
+                    showConfirmButton: false,
+                    timer: 2000,
+                    timerProgressBar: true,
+                });
+            } else {
+                setSearchedFactories([]);
+                // Показываем уведомление, что заводы не найдены
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'info',
+                    title: t('orderCreate.factories.notFound') || 'Заводы не найдены',
+                    showConfirmButton: false,
+                    timer: 2000,
+                    timerProgressBar: true,
+                });
+            }
+        } catch (error) {
+            console.error('Error searching factory:', error);
+            setSearchedFactories([]);
+            Swal.fire({
+                icon: 'error',
+                title: t('orderCreate.factories.searchError') || 'Ошибка поиска',
+                text: error.data?.message || t('orderCreate.notifications.error.default'),
+                timer: 2000,
+                showConfirmButton: false,
+            });
+        }
+    };
+
     // Обработчик изменения фабрики - просто меняем выбранную фабрику
     const handleFactoryChange = (factoryId) => {
         setSelectedFactory(factoryId);
         setPage(1);
+
+        // НЕ меняем поиск товаров - сохраняем то что пользователь ввел
+        // Если поиска нет и выбрали конкретный завод - устанавливаем 'all'
+        if (factoryId !== 'all' && !searchTerm) {
+            setSearchTerm('all');
+        }
+        // Если переключились обратно на "Все заводы" и search='all' - очищаем
+        if (factoryId === 'all' && searchTerm === 'all') {
+            setSearchTerm('');
+        }
+
         if (searchInputRef.current) {
             searchInputRef.current.focus();
         }
     };
 
-    // Данные из API - фильтруем на клиенте
-    const products = useMemo(() => {
-        const allProducts = data?.data || [];
-
-        // Если выбрано "Все", показываем все товары
-        if (selectedFactory === 'all') {
-            return allProducts;
+    // Переключение режима поиска
+    const toggleSearchMode = () => {
+        setSearchMode(prev => prev === 'products' ? 'factories' : 'products');
+        // Очищаем соответствующие поля при переключении
+        if (searchMode === 'products') {
+            // Переключаемся на поиск заводов
+            setFactorySearchTerm('');
+            setSearchedFactories([]);
+            setTimeout(() => {
+                if (factorySearchInputRef.current) {
+                    factorySearchInputRef.current.focus();
+                }
+            }, 100);
+        } else {
+            // Переключаемся на поиск товаров
+            setSearchTerm('');
+            setPage(1);
+            setTimeout(() => {
+                if (searchInputRef.current) {
+                    searchInputRef.current.focus();
+                }
+            }, 100);
         }
+    };
 
-        // Фильтруем товары по выбранной фабрике
-        return allProducts.filter(product => {
-            const productLocationId = product.product?.location?.id;
-            return productLocationId === selectedFactory;
-        });
-    }, [data, selectedFactory]);
+    // Данные из API
+    const products = useMemo(() => {
+        return data?.data || [];
+    }, [data]);
 
     // Данные пагинации из API
     const pagination = useMemo(() => {
-        const apiPagination = data?.pagination || {
+        return data?.pagination || {
             totalCount: 0,
             totalPages: 1,
             currentPage: 1,
             limit: 15
         };
+    }, [data]);
 
-        // Если фильтруем по фабрике, обновляем totalCount
-        if (selectedFactory !== 'all') {
-            const filteredCount = products.length;
-            return {
-                ...apiPagination,
-                totalCount: filteredCount
-            };
-        }
-
-        return apiPagination;
-    }, [data, products, selectedFactory]);
-
-    // Данные фабрик из locations API
+    // Данные фабрик из locations API + найденные через поиск
     const factories = useMemo(() => {
         const locationsFromApi = data?.locations || [];
         const allProducts = data?.data || [];
@@ -123,19 +222,40 @@ export default function OrderCreate() {
             }
         });
 
-        return [
+        // Начинаем с "Все заводы"
+        const factoryList = [
             {
                 id: 'all',
                 name: t('orderCreate.factories.all'),
                 product_count: allProducts.length
-            },
-            ...locationsFromApi.map(location => ({
-                id: location.id,
-                name: location.name.trim(),
-                product_count: factoryCounts[location.id] || 0
-            }))
+            }
         ];
-    }, [data?.locations, data?.data, t]);
+
+        // Добавляем заводы из API
+        const apiFactories = locationsFromApi.map(location => ({
+            id: location.id,
+            name: location.name.trim(),
+            product_count: factoryCounts[location.id] || 0
+        }));
+
+        // Создаем Map для быстрого поиска по ID
+        const factoryMap = new Map();
+
+        // Сначала добавляем все заводы из API
+        apiFactories.forEach(factory => {
+            factoryMap.set(factory.id, factory);
+        });
+
+        // Затем добавляем найденные заводы (если их еще нет)
+        searchedFactories.forEach(searchedFactory => {
+            if (!factoryMap.has(searchedFactory.id)) {
+                factoryMap.set(searchedFactory.id, searchedFactory);
+            }
+        });
+
+        // Преобразуем Map обратно в массив
+        return [...factoryList, ...Array.from(factoryMap.values())];
+    }, [data?.locations, data?.data, t, searchedFactories]);
 
     // Обработчик изменения страницы
     const handlePageChange = (newPage) => {
@@ -395,36 +515,119 @@ export default function OrderCreate() {
                         </button>
                     </div>
 
-                    {/* Поле поиска */}
-                    <div className="relative">
-                        <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                        <input
-                            ref={searchInputRef}
-                            type="text"
-                            placeholder={t('orderCreate.search.placeholder')}
-                            value={searchTerm}
-                            onChange={handleSearchChange}
-                            className="w-full pl-10 pr-12 py-3 bg-card-light dark:bg-card-dark border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-mainColor focus:border-transparent text-text-light dark:text-text-dark transition-all duration-200"
-                        />
-                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                            {isFetching ? (
-                                <Loader2 className="w-5 h-5 text-mainColor animate-spin" />
-                            ) : (
-                                searchTerm && (
-                                    <button
-                                        onClick={() => {
-                                            setSearchTerm('');
-                                            if (searchInputRef.current) {
-                                                searchInputRef.current.focus();
-                                            }
-                                        }}
-                                        className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                                    >
-                                        <X className="w-5 h-5" />
-                                    </button>
-                                )
-                            )}
-                        </div>
+                    {/* Переключатель режимов поиска */}
+                    <div className="flex items-center gap-4 mb-4 p-2 bg-gray-100 dark:bg-gray-800 rounded-lg inline-flex">
+                        <button
+                            onClick={() => setSearchMode('products')}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+                                searchMode === 'products'
+                                    ? 'bg-mainColor text-white shadow-md'
+                                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                            }`}
+                        >
+                            <Package className="w-4 h-4" />
+                            <span className="text-sm font-medium">{t('orderCreate.search.mode.products') || 'Поиск товаров'}</span>
+                        </button>
+                        <button
+                            onClick={() => setSearchMode('factories')}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+                                searchMode === 'factories'
+                                    ? 'bg-mainColor text-white shadow-md'
+                                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                            }`}
+                        >
+                            <Factory className="w-4 h-4" />
+                            <span className="text-sm font-medium">{t('orderCreate.search.mode.factories') || 'Поиск заводов'}</span>
+                        </button>
+                    </div>
+
+                    {/* Поля поиска - показываем в зависимости от режима */}
+                    <div className="grid grid-cols-1 gap-4">
+                        {searchMode === 'factories' ? (
+                            /* Поле поиска заводов */
+                            <div className="relative">
+                                <Factory className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                <input
+                                    ref={factorySearchInputRef}
+                                    type="text"
+                                    placeholder={t('orderCreate.factories.searchPlaceholder') || 'Поиск завода...'}
+                                    value={factorySearchTerm}
+                                    onChange={handleFactorySearchChange}
+                                    className="w-full pl-10 pr-12 py-3 bg-card-light dark:bg-card-dark border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-text-light dark:text-text-dark transition-all duration-200"
+                                />
+                                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                    {isSearchingFactory ? (
+                                        <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
+                                    ) : (
+                                        factorySearchTerm && (
+                                            <button
+                                                onClick={() => {
+                                                    setFactorySearchTerm('');
+                                                    setSearchedFactories([]);
+                                                    if (factorySearchInputRef.current) {
+                                                        factorySearchInputRef.current.focus();
+                                                    }
+                                                }}
+                                                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                                            >
+                                                <X className="w-5 h-5" />
+                                            </button>
+                                        )
+                                    )}
+                                </div>
+                            </div>
+                        ) : (
+                            /* Поле поиска товаров */
+                            <div className="relative">
+                                <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                <input
+                                    ref={searchInputRef}
+                                    type="text"
+                                    placeholder={
+                                        selectedFactory !== 'all'
+                                            ? t('orderCreate.search.placeholderFiltered') || 'Поиск товаров на выбранном заводе...'
+                                            : t('orderCreate.search.placeholder')
+                                    }
+                                    value={searchTerm === 'all' ? '' : searchTerm}
+                                    onChange={handleSearchChange}
+                                    className="w-full pl-10 pr-12 py-3 bg-card-light dark:bg-card-dark border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-mainColor focus:border-transparent text-text-light dark:text-text-dark transition-all duration-200"
+                                />
+                                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                    {isFetching ? (
+                                        <Loader2 className="w-5 h-5 text-mainColor animate-spin" />
+                                    ) : (
+                                        (searchTerm && searchTerm !== 'all') && (
+                                            <button
+                                                onClick={() => {
+                                                    if (selectedFactory !== 'all') {
+                                                        // Если выбран завод - устанавливаем 'all' для показа всех товаров завода
+                                                        setSearchTerm('all');
+                                                    } else {
+                                                        // Если "Все заводы" - очищаем полностью
+                                                        setSearchTerm('');
+                                                    }
+                                                    if (searchInputRef.current) {
+                                                        searchInputRef.current.focus();
+                                                    }
+                                                }}
+                                                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                                            >
+                                                <X className="w-5 h-5" />
+                                            </button>
+                                        )
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Подсказка о текущем режиме поиска */}
+                    <div className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                        {searchMode === 'products' ? (
+                            <span>🔍 {t('orderCreate.search.hint.products') || 'Поиск товаров по названию'}</span>
+                        ) : (
+                            <span>🏭 {t('orderCreate.search.hint.factories') || 'Поиск заводов по названию'}</span>
+                        )}
                     </div>
                 </div>
 
@@ -447,7 +650,7 @@ export default function OrderCreate() {
                             factories={factories}
                             selectedFactory={selectedFactory}
                             onFactoryChange={handleFactoryChange}
-                            isLoading={isFetching}
+                            isLoading={isFetching || isSearchingFactory}
                         />
                     </div>
 

@@ -11,10 +11,8 @@ export default function AppRouter() {
     return (
         <Suspense fallback={<Loading />}>
             <Routes>
-
                 {/* редирект с / на /login */}
                 <Route path="/" element={<Navigate to="/login" replace />} />
-
                 <Route element={<MainLayout />}>
                     {ROUTES.map(r => (
                         <Route key={r.path} element={<RoleGuard allow={r.roles} />}>
@@ -22,10 +20,8 @@ export default function AppRouter() {
                         </Route>
                     ))}
                 </Route>
-
                 <Route path="/login" element={<Login />} />
                 <Route path="*" element={<NotFound />} />
-
             </Routes>
         </Suspense>
     );
