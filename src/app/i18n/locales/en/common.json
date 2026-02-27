@@ -77,6 +77,7 @@
             "nameLabel": "Product Name *",
             "namePlaceholder": "Example: Special mortar for masonry",
             "quantityLabel": "Quantity",
+            "priceLabel": "Price (per unit)",
             "unitLabel": "Unit of Measurement",
             "notesLabel": "Notes (optional)",
             "notesPlaceholder": "Example: specific color, brand, size",
@@ -129,7 +130,9 @@
             "note": "Note",
             "notePlaceholder": "Enter a note for the order (optional)",
             "noteHint": "Additional information for manager or courier",
-            "deliveryDateHint": "Date scheduled for delivery"
+            "deliveryDateHint": "Date scheduled for delivery",
+            "address": "Delivery address",
+            "addressPlaceholder": "Enter delivery address..."
         },
         "notifications": {
             "productAdded": "Product added",

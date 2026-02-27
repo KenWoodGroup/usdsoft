@@ -18,6 +18,7 @@ import Pagination from './__components/Pagination';
 export default function OrderCreate() {
     const { t } = useTranslation();
     const [searchTerm, setSearchTerm] = useState('');
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
     const [factorySearchTerm, setFactorySearchTerm] = useState('');
     const [page, setPage] = useState(1);
     const [selectedProducts, setSelectedProducts] = useState([]);
@@ -26,6 +27,7 @@ export default function OrderCreate() {
     const [selectedFactory, setSelectedFactory] = useState('all');
     const [searchedFactories, setSearchedFactories] = useState([]);
     const [searchMode, setSearchMode] = useState('products'); // 'products' или 'factories'
+    const [persistentLocations, setPersistentLocations] = useState([]);
 
     const searchInputRef = useRef(null);
     const factorySearchInputRef = useRef(null);
@@ -34,13 +36,13 @@ export default function OrderCreate() {
     // Lazy query для поиска завода по названию
     const [searchFactoryByName, { data: factorySearchData, isLoading: isSearchingFactory }] = useLazySearchFactoryByNameQuery();
 
-    // Получаем данные с API (включая locations)
-    // Не пропускаем запрос если: есть поиск, выбран конкретный завод, или search='all'
-    const shouldSkip = !searchTerm && selectedFactory === 'all';
+    // Получаем данные с API
+    // Пропускаем запрос если: нет активного поиска и не выбран конкретный завод
+    const shouldSkip = !debouncedSearchTerm && selectedFactory === 'all';
 
     const { data, isLoading, error, isFetching } = useStockGetSearchQuery(
         {
-            search: searchTerm || '',
+            search: debouncedSearchTerm || '',
             page,
             location_id: selectedFactory !== 'all' ? selectedFactory : undefined,
         },
@@ -56,11 +58,12 @@ export default function OrderCreate() {
     // Дебаунс для поиска товаров
     const debouncedSearch = useCallback(
         debounce((value) => {
+            setDebouncedSearchTerm(value);
             if (value !== lastSearchRef.current) {
                 lastSearchRef.current = value;
                 setPage(1);
             }
-        }, 300),
+        }, 500),
         []
     );
 
@@ -99,7 +102,10 @@ export default function OrderCreate() {
 
         try {
             // Шаг 1: Поиск заводов по названию через API (возвращает массив)
-            const result = await searchFactoryByName(factoryName).unwrap();
+            const result = await searchFactoryByName({
+                factoryName,
+                location_id: Cookies.get('location_id')
+            }).unwrap();
 
             // result - это массив заводов: [{ id: "...", name: "..." }, ...]
             if (result && Array.isArray(result) && result.length > 0) {
@@ -210,7 +216,16 @@ export default function OrderCreate() {
 
     // Данные фабрик из locations API + найденные через поиск
     const factories = useMemo(() => {
-        const locationsFromApi = data?.locations || [];
+        let locationsFromApi = persistentLocations;
+
+        // Локальная фильтрация в сайдбаре при поиске заводов
+        if (searchMode === 'factories' && factorySearchTerm.trim()) {
+            const term = factorySearchTerm.toLowerCase();
+            locationsFromApi = locationsFromApi.filter(loc =>
+                loc.name.toLowerCase().includes(term)
+            );
+        }
+
         const allProducts = data?.data || [];
 
         // Подсчитываем количество товаров для каждой фабрики
@@ -255,7 +270,7 @@ export default function OrderCreate() {
 
         // Преобразуем Map обратно в массив
         return [...factoryList, ...Array.from(factoryMap.values())];
-    }, [data?.locations, data?.data, t, searchedFactories]);
+    }, [persistentLocations, data?.data, t, searchedFactories]);
 
     // Обработчик изменения страницы
     const handlePageChange = (newPage) => {
@@ -344,7 +359,7 @@ export default function OrderCreate() {
 
     // Создание заказа
     const handleCreateOrder = async (cartData) => {
-        const { date, is_logist, note } = cartData;
+        const { date, is_logist, note, address } = cartData;
 
         if (selectedProducts.length === 0) {
             Swal.fire({
@@ -375,7 +390,7 @@ export default function OrderCreate() {
         }
 
         // Проверяем обязательные поля из корзины
-        if (!date || is_logist === null) {
+        if (!date || is_logist === null || !address) {
             Swal.fire({
                 icon: 'error',
                 title: t('orderCreate.notifications.missingFields.title'),
@@ -386,17 +401,19 @@ export default function OrderCreate() {
         }
 
         try {
-            // Подготавливаем данные согласно вашей структуре
+            // Подготавливаем данные согласно вашему запросу
             const orderDataToSend = {
                 location_id: Cookies?.get('location_id'),
                 note: note || undefined,
                 items: selectedProducts.map(product => ({
-                    product_id: product.isManual ? undefined : product.product_id,
                     product_name: product.name,
+                    product_price: Number(product.purchase_price) || 0,
+                    unit: product.unit || 'dona',
                     quantity: Number(product.quantity) || 0
                 })),
                 date: date,
-                is_logist: is_logist
+                is_logist: is_logist,
+                address: address
             };
 
             // Убираем undefined поля
@@ -478,7 +495,20 @@ export default function OrderCreate() {
     // Сброс на первую страницу при изменении поиска или фабрики
     useEffect(() => {
         setPage(1);
-    }, [searchTerm, selectedFactory]);
+    }, [debouncedSearchTerm, selectedFactory]);
+
+    // Обновление постоянного списка локаций
+    useEffect(() => {
+        if (data?.locations && data.locations.length > 0) {
+            setPersistentLocations(prev => {
+                const locationMap = new Map(prev.map(l => [l.id, l]));
+                data.locations.forEach(loc => {
+                    locationMap.set(loc.id, loc);
+                });
+                return Array.from(locationMap.values());
+            });
+        }
+    }, [data?.locations]);
 
     return (
         <div className="min-h-screen bg-bg-light dark:bg-bg-dark pb-20">
@@ -519,22 +549,20 @@ export default function OrderCreate() {
                     <div className="flex items-center gap-4 mb-4 p-2 bg-gray-100 dark:bg-gray-800 rounded-lg inline-flex">
                         <button
                             onClick={() => setSearchMode('products')}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                                searchMode === 'products'
-                                    ? 'bg-mainColor text-white shadow-md'
-                                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-                            }`}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${searchMode === 'products'
+                                ? 'bg-mainColor text-white shadow-md'
+                                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                                }`}
                         >
                             <Package className="w-4 h-4" />
                             <span className="text-sm font-medium">{t('orderCreate.search.mode.products') || 'Поиск товаров'}</span>
                         </button>
                         <button
                             onClick={() => setSearchMode('factories')}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                                searchMode === 'factories'
-                                    ? 'bg-mainColor text-white shadow-md'
-                                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-                            }`}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${searchMode === 'factories'
+                                ? 'bg-mainColor text-white shadow-md'
+                                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                                }`}
                         >
                             <Factory className="w-4 h-4" />
                             <span className="text-sm font-medium">{t('orderCreate.search.mode.factories') || 'Поиск заводов'}</span>
@@ -630,6 +658,7 @@ export default function OrderCreate() {
                         )}
                     </div>
                 </div>
+
 
                 {/* Форма добавления вручную */}
                 {showManualAdd && (

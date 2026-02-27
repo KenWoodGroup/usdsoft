@@ -9,6 +9,7 @@ export default function ManualProductForm({ onClose, onAddManualProduct }) {
         name: '',
         quantity: '',
         unit: '',
+        price: '',
         notes: ''
     });
 
@@ -37,6 +38,7 @@ export default function ManualProductForm({ onClose, onAddManualProduct }) {
             product_id: null,
             name: manualProduct.name,
             quantity: manualProduct.quantity || '',
+            purchase_price: manualProduct.price || 0,
             unit: manualProduct.unit || '',
             notes: manualProduct.notes || '',
             isManual: true,
@@ -112,6 +114,21 @@ export default function ManualProductForm({ onClose, onAddManualProduct }) {
                             placeholder="0"
                             min="0"
                             step="1"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            {t('orderCreate.manualAdd.priceLabel')}
+                        </label>
+                        <input
+                            type="number"
+                            name="price"
+                            value={manualProduct.price}
+                            onChange={handleManualProductChange}
+                            className="w-full px-4 py-2.5 bg-card-light dark:bg-card-dark border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-mainColor focus:border-transparent text-text-light dark:text-text-dark"
+                            placeholder="0"
+                            min="0"
                         />
                     </div>
 

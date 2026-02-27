@@ -29,7 +29,8 @@
     "defaultMessage": "Ma’lumotlarni yuklashda xatolik yuz berdi. Iltimos, keyinroq urinib ko‘ring.",
     "unknown": "Noma’lum xatolik",
     "retry": "Qayta urinish"
-  },  "orderCreate": {
+  },
+  "orderCreate": {
     "title": "Buyurtma yaratish",
     "subtitle": "Katalogdan mahsulotlarni tanlang yoki qo'lda qo'shing",
     "search": {
@@ -76,6 +77,7 @@
       "nameLabel": "Mahsulot nomi *",
       "namePlaceholder": "Masalan: Maxsus tosh qo'yish eritmasi",
       "quantityLabel": "Miqdori",
+      "priceLabel": "Narxi (birlik uchun)",
       "unitLabel": "O'lchov birligi",
       "notesLabel": "Izohlar (ixtiyoriy)",
       "notesPlaceholder": "Masalan: ma'lum rang, marka, o'lcham",
@@ -128,7 +130,9 @@
       "note": "Izoh",
       "notePlaceholder": "Buyurtma uchun izoh kiriting (ixtiyoriy)",
       "noteHint": "Menejer yoki kuryer uchun qo'shimcha ma'lumot",
-      "deliveryDateHint": "Yetkazib berish rejalashtirilgan sana"
+      "deliveryDateHint": "Yetkazib berish rejalashtirilgan sana",
+      "address": "Yetkazib berish manzili",
+      "addressPlaceholder": "Yetkazib berish manzilini kiriting..."
     },
     "notifications": {
       "productAdded": "Mahsulot qo'shildi",

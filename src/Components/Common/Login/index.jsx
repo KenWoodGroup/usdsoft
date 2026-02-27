@@ -31,15 +31,14 @@ export default function Login() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (isLoading) return;
-
         try {
             const data = await login({ username, password }).unwrap();
             dispatch(setAuth({
                 access_token: data?.tokens?.access_token,
                 refresh_token: data?.tokens?.refresh_token,
-                role: data?.newUser?.role,
-                location_id: data?.newUser?.location_id,
-                user_id: data?.newUser?.id,
+                role: data?.user?.role,
+                location_id: data?.user?.location_id,
+                user_id: data?.user?.id,
             }));
             Alert(t("login.loginSuccess"), "success");
             setTimeout(() => navigate("/orders", { replace: true }), 800);
