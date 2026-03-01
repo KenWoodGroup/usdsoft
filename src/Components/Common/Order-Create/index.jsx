@@ -281,16 +281,16 @@ export default function OrderCreate() {
 
     // Обработчик выбора/отмены выбора продукта
     const handleProductSelect = (product) => {
-        const productId = product.product_id || product.id;
+        const productId = product.id;
         const productName = product.product?.name || product.name;
         const unit = product.unit || product.product?.unit || '';
 
-        if (selectedProducts.some(p => p.product_id === productId && !p.isManual)) {
-            setSelectedProducts(prev => prev.filter(p => p.product_id !== productId));
+        if (selectedProducts.some(p => p.id === productId)) {
+            setSelectedProducts(prev => prev.filter(p => p.id !== productId));
         } else {
             const newProduct = {
                 id: productId,
-                product_id: productId,
+                product_id: product.product_id || product.product?.id || null,
                 name: productName,
                 quantity: '',
                 unit: unit,
@@ -406,6 +406,7 @@ export default function OrderCreate() {
                 location_id: Cookies?.get('location_id'),
                 note: note || undefined,
                 items: selectedProducts.map(product => ({
+                    product_id: product.product_id, // Добавлено id
                     product_name: product.name,
                     product_price: Number(product.purchase_price) || 0,
                     unit: product.unit || 'dona',
@@ -473,8 +474,7 @@ export default function OrderCreate() {
 
     // Проверяем, выбран ли товар
     const isProductSelected = (product) => {
-        const productId = product.product_id || product.id;
-        return selectedProducts.some(p => p.product_id === productId);
+        return selectedProducts.some(p => p.id === product.id);
     };
 
     // Автофокус на поле поиска при загрузке
