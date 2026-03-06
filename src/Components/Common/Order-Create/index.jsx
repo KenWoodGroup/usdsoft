@@ -201,21 +201,39 @@ export default function OrderCreate() {
 
     // Данные из API
     const products = useMemo(() => {
+        if (searchMode === 'products' && !debouncedSearchTerm.trim() && selectedFactory === 'all') {
+            return [];
+        }
         return data?.data || [];
-    }, [data]);
+    }, [data, searchMode, debouncedSearchTerm, selectedFactory]);
 
     // Данные пагинации из API
     const pagination = useMemo(() => {
+        if (searchMode === 'products' && !debouncedSearchTerm.trim() && selectedFactory === 'all') {
+            return {
+                totalCount: 0,
+                totalPages: 1,
+                currentPage: 1,
+                limit: 15
+            };
+        }
         return data?.pagination || {
             totalCount: 0,
             totalPages: 1,
             currentPage: 1,
             limit: 15
         };
-    }, [data]);
+    }, [data, searchMode, debouncedSearchTerm, selectedFactory]);
 
     // Данные фабрик из locations API + найденные через поиск
     const factories = useMemo(() => {
+        if (searchMode === 'products' && !debouncedSearchTerm.trim() && selectedFactory === 'all') {
+            return [];
+        }
+        if (searchMode === 'factories' && !factorySearchTerm.trim()) {
+            return [];
+        }
+
         let locationsFromApi = persistentLocations;
 
         // Локальная фильтрация в сайдбаре при поиске заводов
@@ -270,7 +288,7 @@ export default function OrderCreate() {
 
         // Преобразуем Map обратно в массив
         return [...factoryList, ...Array.from(factoryMap.values())];
-    }, [persistentLocations, data?.data, t, searchedFactories]);
+    }, [persistentLocations, data?.data, t, searchedFactories, searchMode, debouncedSearchTerm, selectedFactory, factorySearchTerm]);
 
     // Обработчик изменения страницы
     const handlePageChange = (newPage) => {
@@ -499,16 +517,20 @@ export default function OrderCreate() {
 
     // Обновление постоянного списка локаций
     useEffect(() => {
-        if (data?.locations && data.locations.length > 0) {
-            setPersistentLocations(prev => {
-                const locationMap = new Map(prev.map(l => [l.id, l]));
-                data.locations.forEach(loc => {
-                    locationMap.set(loc.id, loc);
+        if (data?.locations) {
+            if (selectedFactory === 'all') {
+                setPersistentLocations(data.locations);
+            } else if (data.locations.length > 0) {
+                setPersistentLocations(prev => {
+                    const locationMap = new Map(prev.map(l => [l.id, l]));
+                    data.locations.forEach(loc => {
+                        locationMap.set(loc.id, loc);
+                    });
+                    return Array.from(locationMap.values());
                 });
-                return Array.from(locationMap.values());
-            });
+            }
         }
-    }, [data?.locations]);
+    }, [data?.locations, selectedFactory]);
 
     return (
         <div className="min-h-screen bg-bg-light dark:bg-bg-dark pb-20">
