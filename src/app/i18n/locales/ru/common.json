@@ -98,7 +98,7 @@
     },
     "productList": {
       "titleAll": "Все товары",
-      "titleFactory": "Товары фабрики: {factory}",
+      "titleFactory": "Товары фабрики:",
       "title": "Результаты поиска",
       "inStock": "В наличии",
       "selected": "Товар добавлен",

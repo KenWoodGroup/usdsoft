@@ -98,7 +98,7 @@
     },
     "productList": {
       "titleAll": "Barcha mahsulotlar",
-      "titleFactory": "{factory} zavodi mahsulotlari",
+      "titleFactory": "Zavod mahsulotlari",
       "title": "Qidiruv natijalari",
       "inStock": "Mavjud",
       "selected": "Mahsulot qo'shildi",

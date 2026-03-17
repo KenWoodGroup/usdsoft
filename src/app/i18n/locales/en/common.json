@@ -98,7 +98,7 @@
         },
         "productList": {
             "titleAll": "All Products",
-            "titleFactory": "Products of Factory: {factory}",
+            "titleFactory": "Products of Factory:",
             "title": "Search Results",
             "inStock": "In Stock",
             "selected": "Product added",

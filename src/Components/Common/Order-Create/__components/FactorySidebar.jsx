@@ -49,17 +49,6 @@ export default function FactorySidebar({
                                     {factory.name}
                                 </span>
                             </div>
-
-                            {/* Показываем количество товаров */}
-                            {factory.product_count > 0 && (
-                                <span className={`ml-2 text-xs px-2 py-1 rounded-full flex-shrink-0 font-medium ${
-                                    selectedFactory === factory.id
-                                        ? 'bg-blue-100 dark:bg-blue-800/50 text-blue-700 dark:text-blue-300'
-                                        : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
-                                }`}>
-                                    {factory.product_count}
-                                </span>
-                            )}
                         </button>
                     ))
                 )}
