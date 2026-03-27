@@ -426,7 +426,7 @@ export default function OrderCreate() {
                 items: selectedProducts.map(product => ({
                     product_id: product.product_id, // Добавлено id
                     product_name: product.name,
-                    product_price: Number(product.purchase_price) || 0,
+                    cost_price: Number(product.purchase_price) || 0,
                     unit: product.unit || 'dona',
                     quantity: Number(product.quantity) || 0
                 })),
